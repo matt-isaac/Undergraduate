@@ -1,0 +1,36 @@
+---
+title: "Homework 1"
+author: "Matt Isaac"
+date: "August 31, 2017"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Part 1
+
+1. Result in an error.
+2. Do something (but not the correct assignment).
+3. Result in an error.
+4. Result in an error. 
+5. Make the correct assignment. 
+6. Make the correct assignment. 
+7. Result in an error.
+8. Result in an error.
+
+## Part 2 
+
+R and R Studio are installed! 
+
+## Part 3
+
+1. This makes the correct assignment. I guess the space between the '-' and the '5' is acceptable. 
+2. This returned TRUE because of the assignment carried out in #1. However, the '==' sign performs a comparison, not assignment.
+3. My answer was correct.
+4. My answer was correct. (Can't begin name with '_').
+5. My answer was correct.
+6. My answer was correct.
+7. This made the correct assignment. I admit, I'm surprised it worked with the carriage return in there. 
+8. This also worked and made the correct assignment Apparently the line break doesn't stop the assignment from being made. 

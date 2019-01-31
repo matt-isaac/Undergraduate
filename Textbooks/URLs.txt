@@ -1,0 +1,5 @@
+http://www.gradaanwr.net/ - Graphical Data Analysis with R
+
+http://open.lib.umn.edu/communication/
+
+https://otexts.org/fpp2/ts-objects.html - Forecasting: Principles and Practice

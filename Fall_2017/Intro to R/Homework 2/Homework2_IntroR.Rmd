@@ -1,0 +1,51 @@
+---
+title: "Homework 2 - Intro to R"
+author: "Matt Isaac"
+date: "September 6, 2017"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+1.  In R, look at the documentation of the function rbinom, using ?rbinom.
+
+2. Suppose we want to generate 25 pseudo-random values from a binomial distribution with size= 12 and prob= 0.1. Assume that we execute these expressions at the start of an R session with no previous workspace loaded. Which of the following commands is/are suitable for this task? Circle the correct one(s). As with Homework 1, please answer this without using R, then correct your answers using R and explain brie???y what you learned.
+
+I have put an X infront of the ones that I think will work. 
+
+`rbinom(25, 10, 0.1)`
+This one doesn't work because size = 10, not 12. 
+
+$\bf{X}$ `rbinom(size=12, prob=0.1, n=25)`
+Works!
+
+$\bf{X}$ `rbinom(25, 12, 0.1)`
+Works!
+
+$\bf{X}$ `rbinom(25, prob=0.1, size=12)`
+Works!
+
+`rbinom(n=12, prob=0.1, size=25)`
+Doesn't work. n and size are flipped. 
+
+`rbinom(size=12, prob=25, n=.1)`
+Doesn't work. n needs to be $\geq 1$.
+
+`rbinom(25, 0.1, 12)`
+Doesn't work. 12 gets put in as probability, and probability needs to be between 0 and 1. NA's produced. 
+
+`rbinom(12, prob=0.1, 25)`
+Doesn't work. Only 12 variables produced.
+
+`rbinom(25, prob=0.1, 12)`
+This one does indeed work! I don't really know why I thought it wouldn't. But n = 25, prob = 0.1, and then the 12 gets assigned to size. 
+
+3. I learned a lot while running this code. I learned some things about the data set itself. There were also other things that I learned about the R methods used to summarize and understand these data. 
+
+a. First, I learned that on average, people want to be about 15 pounds lighter than they are. I also thought that it was notable that the heaviest person interviewed weighed 500 pounds! 
+As far as the coding goes, I saw a great example of why it isn't a good idea to use the `attach()` command. I have been told that in the past, but have never seen an example of it. I would not have expected that command to work that way. 
+I also learned what the `detach()` command does. I had never seen that function before. Although I suppose if I never use `attach()`, I'll never need `detach()`.
+`head(weight >= 400)` was also a new concept for me. I didn't expect it to return logical vectors, but it makes sense because it is performing a comparison. I tought it would give me the values for weight in the first six rows that were greater than or equal to 400. 
+
+b. `BMI = (weight * 0.454)/(height * 0.0254)^2`

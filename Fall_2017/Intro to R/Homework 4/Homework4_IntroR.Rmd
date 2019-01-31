@@ -1,0 +1,64 @@
+---
+title: "IntroR_Homework4"
+author: "Matt Isaac"
+date: "October 2, 2017"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+1. `centralLimit` function defined: 
+
+```{r}
+centralLimit = function(nreps, nobs, trials, ps, hist = FALSE, qqnorm = FALSE, ...)
+{
+  binomSamps = lapply(rep(nobs,nreps), rbinom, size=trials, prob=ps)
+  mymeans = sapply(binomSamps, mean)
+  if (hist == TRUE)
+  {
+    hist(mymeans, freq=FALSE, ...)
+  }
+  if (qqnorm == TRUE)
+  {
+    qqnorm(mymeans, ...)
+  }
+}
+```
+
+\newpage
+
+2. 
+Function called with `nreps = 10000`, `trials = 5`, `ps = 0.1`, and `nobs = 5`:
+
+```{r, fig.width=6, fig.height=4}
+centralLimit(nreps = 100000, nobs = 5, trial = 5, ps = 0.1, hist = TRUE, qqnorm = TRUE)
+```
+
+\newpage
+Function called with `nreps = 10000`, `trials = 5`, `ps = 0.1`, and `nobs = 10`:
+
+```{r, fig.width=6, fig.height=4}
+centralLimit(nreps = 100000, nobs = 10, trial = 5, ps = 0.1, hist = TRUE, qqnorm = TRUE)
+```
+\newpage
+Function called with `nreps = 10000`, `trials = 5`, `ps = 0.1`, and `nobs = 50`:
+
+```{r, fig.width=6, fig.height=4}
+centralLimit(nreps = 100000, nobs = 50, trial = 5, ps = 0.1, hist = TRUE, qqnorm = TRUE)
+```
+\newpage
+Function called with `nreps = 10000`, `trials = 5`, `ps = 0.1`, and `nobs = 100`:
+
+```{r, fig.width=6, fig.height=4}
+centralLimit(nreps = 100000, nobs = 100, trial = 5, ps = 0.1, hist = TRUE, qqnorm = TRUE)
+```
+\newpage
+Function called with `nreps = 10000`, `trials = 5`, `ps = 0.1`, and `nobs = 500`:
+
+```{r, fig.width=6, fig.height=4}
+centralLimit(nreps = 100000, nobs = 500, trial = 5, ps = 0.1, hist = TRUE, qqnorm = TRUE)
+```
+
+This is a wonderful illustration of the central limit theorem. The central limit theorem states (in so many words) that if the sample size is large enough, the distribution of means of all possible samples from any distribution will be approximately normal. Our samples comes from a binomial distribution, with the probability of success equal to 0.1. The first graph (obs = 5) shows that the distribution of the means are right skewed - clearly not normal. But the central limit theorem applies to means of samples from any distribution.  As we increase our sample size incrementaly from 5 up to 500, we see the histograms and normal quantile plots showing distributions of means that are increasingly normal. This is exactly what we'd expect. The larger the sample size, the more closely we will approximiate the normal distribution.

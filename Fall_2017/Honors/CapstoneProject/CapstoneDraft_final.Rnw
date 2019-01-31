@@ -1,0 +1,701 @@
+\documentclass[12pt]{article}
+\usepackage{amsmath}
+\usepackage{hanging}
+\usepackage[margin=1in]{geometry}
+\usepackage{csquotes}
+\usepackage{Sweave}
+\usepackage{hyperref}
+\usepackage{apacite}
+
+\begin{document}
+\SweaveOpts{concordance=TRUE}
+\SweaveOpts{echo=FALSE}
+
+\begin{titlepage}
+
+  \begin{center}
+    \vspace*{1cm}
+    \textbf{MINDSET, ATTITUDES, AND SUCCESS IN STATISTICS}
+    \vspace*{1cm}
+    \\by\\
+    \vspace*{0.5cm}
+    \textbf{Matthew Isaac}
+    \vfill
+    
+    
+    Thesis submitted in partial fulfillment \\
+    of the requirements for the degree \\
+    \vspace*{0.25cm}
+    of\\
+    \vspace*{0.25cm}
+    \textbf{University Studies and Departmental Honors}\\
+    \vspace*{0.25cm}
+    in\\
+    \vspace*{0.25cm}
+    \textbf{Statistics}\\
+    \vspace*{0.25cm}
+    in the Department of Mathematics and Statistics\\
+    \end{center}
+    
+    Approved:
+    \vspace*{1.0cm}
+    
+    \begin{center}
+    \hrulefill \\
+    \textbf{Capstone Mentor} \hfill{\textbf{Committee Member}}\newline
+    Dr. Kady Schneiter \hfill{Dr. David Brown}\\
+    \end{center}
+    
+    \vspace*{1.0cm}
+    
+    \begin{center}
+   
+    \hrulefill \\
+    \textbf{Director of University Honors Program}\\
+    Dr. Kristine Miller\\
+
+    \vspace*{1cm}
+    
+    \textbf{UTAH STATE UNIVERSITY}\\
+    Logan, UT\\
+    \vspace*{0.25cm}
+    
+    Spring 2018
+    
+    \end{center}
+\end{titlepage}
+\pagenumbering{arabic}
+
+\begin{center}
+\vspace*{\fill}
+\copyright 2018 Matthew Isaac All Rights Reserved
+\vspace*{\fill}
+\end{center}
+
+\newpage
+
+<<results=hide>>=
+# load packages
+library(tidyr)
+library(dplyr)
+library(MASS)
+library(ggplot2)
+library(rpart)
+library(dunn.test)
+library(ggpubr)
+
+
+data = read.csv("D:/Academic/Fall_2017/Honors/CapstoneProject/all.csv", header = TRUE)
+
+df.data <- data.frame(data) 
+
+df.data <- filter(df.data, Final.Exam != 0)
+n <- nrow(df.data)
+
+# calculate composite (mean) score for mindset questions
+
+# Statistics mindset questions:
+mindset.stat <- dplyr::select(df.data, M1f, M2g, M3f, M4g, M5f, M6g, M7g)
+mindset.gen <- dplyr::select(df.data, M8f, M9g, M10f, M11g, M12f, M13g, M14g)
+
+
+mindset.stat.mean <-  rowMeans(mindset.stat, na.rm = TRUE)
+mindset.gen.mean <-  rowMeans(mindset.gen, na.rm = TRUE)
+
+mindset.stat$mindset.stat.mean <- mindset.stat.mean
+mindset.gen$mindset.gen.mean <- mindset.gen.mean
+
+mindset.stat <- mutate(mindset.stat, mindset.stat.gf = case_when((mindset.stat.mean < 0) ~ 'fixed', 
+                                                  (mindset.stat.mean > 0) ~ 'growth', 
+                                                  (mindset.stat.mean == 0) ~ 'neutral'))
+
+mindset.gen <- mutate(mindset.gen, mindset.gen.gf = case_when((mindset.gen.mean < 0) ~ 'fixed', 
+                                                  (mindset.gen.mean > 0) ~ 'growth', 
+                                                  (mindset.gen.mean == 0) ~ 'neutral'))
+
+mindset.gen$mindset.gen.gf <- as.factor(mindset.gen$mindset.gen.gf)
+mindset.stat$mindset.stat.gf <- as.factor(mindset.stat$mindset.stat.gf)
+
+
+df.data$mindset.stat.gf <- mindset.stat$mindset.stat.gf
+df.data$mindset.gen.gf <- mindset.gen$mindset.gen.gf
+
+bp.mindset <- boxplot(mindset.gen.mean, mindset.stat.mean, names = c("General Mindset", "Statistical Mindset"), col = c("cornsilk", "cornsilk"))
+abline(0,0, col = "gray5", lty = "dashed", lwd = "2")
+
+
+############################
+# Is there a significant difference in Course Score for
+# different levels of mindset (fixed or growth)?
+############################
+# Determine if course score follows an approx. normal distribution
+
+n.growth.stat <- sum(df.data$mindset.stat.gf == "growth", na.rm = TRUE)
+n.fixed.stat <- sum(df.data$mindset.stat.gf == "fixed", na.rm = TRUE)
+n.neutral.stat <- sum(df.data$mindset.stat.gf == "neutral", na.rm = TRUE)
+
+p.growth.stat <- (n.growth.stat/n) * 100
+p.fixed.stat <- (n.fixed.stat/n) * 100
+p.neutral.stat <- (n.neutral.stat/n) * 100
+
+n.growth.gen <- sum(df.data$mindset.gen.gf == "growth", na.rm = TRUE)
+n.fixed.gen <- sum(df.data$mindset.gen.gf == "fixed", na.rm = TRUE)
+n.neutral.gen <- sum(df.data$mindset.gen.gf == "neutral", na.rm = TRUE)
+
+p.growth.gen <- (n.growth.gen/n) * 100
+p.fixed.gen <- (n.fixed.gen/n) * 100
+p.neutral.gen <- (n.neutral.gen/n) * 100
+
+## Need to peform Chi-Square test for difference between distribution of mindset scores
+
+#hist(df.data$Final.Score, breaks = 10)
+#hist(df.data$Final.Score[which(df.data$mindset.stat.gf == "growth")], breaks = 10)
+#hist(df.data$Final.Score[which(df.data$mindset.stat.gf == "fixed")], breaks = 10)
+# The above two histograms do not follow an approximately normal distribution. Thus, the assumptions for
+# a t-test are not met. Non-parametric methods must be used.
+
+# a non-parametric test of centers must be used to determine if the center of "growth" mindset grades
+# is much different from the center of "fixed" mindset grades. 
+################
+# Stat Mindset #
+################
+mindset.stat.cscore.test <- wilcox.test(mindset.stat.mean[which(df.data$mindset.stat.gf == "growth")], 
+            mindset.stat.mean[which(df.data$mindset.stat.gf == "fixed")], 
+            paried = FALSE, conf.int = TRUE)
+
+
+finalscore.mindset.stat.hist <- ggplot(data = df.data[df.data$mindset.stat.gf == "fixed" | df.data$mindset.stat.gf == "growth", ], aes(x = Final.Score)) +
+  #xlim(0, 180) +
+  xlab("Final Course Score") +
+  ylab("density") +
+  scale_x_continuous(breaks = seq(0, 100, 10)) + 
+  scale_y_continuous(breaks = seq(0, 0.06, by = 0.005)) + 
+  theme(plot.title = element_text(hjust = 0.5), 
+        panel.grid.major.x = element_blank(), panel.grid.minor.x = element_blank(),
+        panel.grid.minor.y = element_blank()) +
+  geom_density(bw = 4, aes(fill = df.data$mindset.stat.gf[df.data$mindset.stat.gf == "fixed" | df.data$mindset.stat.gf == "growth"]), size=0.25, alpha=.6) + 
+  scale_fill_manual(values = c("tomato", "skyblue3")) +
+  geom_vline(xintercept = median(df.data$Final.Score[which(df.data$mindset.stat.gf == "fixed")]), col = "red", size =1, linetype = "dashed") + 
+  geom_vline(xintercept = median(df.data$Final.Score[which(df.data$mindset.stat.gf == "growth")]), col = "blue", size = 1, linetype = "dashed") +
+  theme(legend.title = element_blank()) + 
+  ggtitle("Statistics Mindset") + 
+  theme(axis.text=element_text(size=14),
+        axis.title=element_text(size=16),
+        plot.title = element_text(size = 22, hjust = 0),
+        legend.text = element_text(size = 14))
+
+################
+# General Mindset #
+################
+mindset.gen.cscore.test <- wilcox.test(mindset.gen.mean[which(df.data$mindset.gen.gf == "growth")], 
+            mindset.gen.mean[which(df.data$mindset.gen.gf == "fixed")], 
+            paried = FALSE, conf.int = TRUE)
+
+
+finalscore.mindset.gen.hist <- ggplot(data = df.data[df.data$mindset.gen.gf == "fixed" | df.data$mindset.gen.gf == "growth", ], aes(x = Final.Score)) +
+  #xlim(0, 180) +
+  xlab("Final Course Score") +
+  ylab("density") +
+  scale_x_continuous(breaks = seq(0, 100, 10)) + 
+  scale_y_continuous(breaks = seq(0, 0.06, by = 0.005)) + 
+  ggtitle("") +
+  theme(plot.title = element_text(hjust = 0.5), 
+        panel.grid.major.x = element_blank(), panel.grid.minor.x = element_blank(),
+        panel.grid.minor.y = element_blank()) +
+  geom_density(bw = 4, aes(fill = df.data$mindset.gen.gf[df.data$mindset.gen.gf == "fixed" | df.data$mindset.gen.gf == "growth"]), size=0.25, alpha=.6) + 
+  scale_fill_manual(values = c("tomato", "skyblue3")) +
+  geom_vline(xintercept = median(df.data$Final.Score[which(df.data$mindset.gen.gf == "fixed")]), col = "red", size = 1, linetype = "dashed") + 
+  geom_vline(xintercept = median(df.data$Final.Score[which(df.data$mindset.gen.gf == "growth")]), col = "blue", size = 1, linetype = "dashed") +
+  theme(legend.title = element_blank()) + 
+  ggtitle("General Mindset") + 
+    theme(axis.text=element_text(size=14),
+        axis.title=element_text(size=16),
+        plot.title = element_text(size = 22, hjust = 0),
+        legend.text = element_text(size = 14))
+
+#######################
+# Is there a significant difference in Course Score
+# for different levels of comfort/enjoyment attitude (negative, neutral, positive) ?
+#######################
+# calculate scores for attitude questions
+a11 <- df.data$enjoysch
+a12 <- df.data$enjoymath
+a13 <- df.data$prepstats
+a14 <- df.data$prepcollege
+a15 <- df.data$anticdifficult * -1
+a16 <- df.data$effort * -1
+a17 <- df.data$goodatmath 
+a18 <- df.data$statsismath
+a19 <- df.data$heardpos 
+a20 <- df.data$workdowell
+a21 <- df.data$statsisrules * -1
+a22 <- df.data$enjoystats
+a23 <- df.data$undworld
+a24 <- df.data$avoidmath * -1
+a25 <- df.data$useful
+a26 <- df.data$nervous * -1
+a27 <- df.data$researcher
+a28 <- df.data$mysterious * -1
+a29 <- df.data$benefit
+a30 <- df.data$irrelevant * -1
+a31 <- df.data$continue
+a32 <- df.data$toomath * -1
+a33 <- df.data$intimidated * -1
+a34 <- df.data$excited
+a35 <- df.data$life
+
+attitude.ec <- data.frame(a12, a13, a15, a16, a17,
+                          a22, a24, a26, a28, a33)
+attitude.ec.mean <- rowMeans(attitude.ec, na.rm = TRUE)
+attitude.ec <- mutate(attitude.ec, attitude.ec.pn = case_when((attitude.ec.mean < 0) ~ 'negative', 
+                                                  (attitude.ec.mean > 0) ~ 'positive', 
+                                                  (attitude.ec.mean == 0) ~ 'neutral'))
+
+attitude.ec$attitude.ec.pn <- as.factor(attitude.ec$attitude.ec.pn)
+
+df.data$attitude.ec.pn <- attitude.ec$attitude.ec.pn
+
+
+n.ec.pos <- sum(attitude.ec$attitude.ec.pn == "positive", na.rm = TRUE)
+n.ec.neg <- sum(attitude.ec$attitude.ec.pn == "negative", na.rm = TRUE)
+n.ec.neu <- sum(attitude.ec$attitude.ec.pn == "neutral", na.rm = TRUE)
+
+p.ec.pos <- (n.ec.pos/n) * 100
+p.ec.neg <- (n.ec.neg/n) * 100
+p.ec.neu <- (n.ec.neu/n) * 100
+
+
+# Significance test:
+attitude.ec.csore.test <- kruskal.test(attitude.ec.mean ~ factor(attitude.ec$attitude.ec.pn))
+dt.attitude.ec <- dunn.test(attitude.ec.mean, g = factor(attitude.ec$attitude.ec.pn), method = "Bonferroni")
+
+attitude.ec.cscore.wtest <- wilcox.test(attitude.ec.mean[which(df.data$attitude.ec.pn == "positive")], 
+            attitude.ec.mean[which(df.data$attitude.ec.pn == "negative")], 
+            paried = FALSE, conf.int = TRUE)
+
+# attitude.u.cscore.wtest <- wilcox.test(attitude.u.mean[which(df.data$attitude.u.pn == "positive")], 
+#             attitude.u.mean[which(df.data$attitude.u.pn == "negative")], 
+#             paried = FALSE, conf.int = TRUE)
+
+# finalscore.attitude.ec.hist <- ggplot(data = df.data[df.data$attitude.ec.pn == "positive" | df.data$attitude.ec.pn == "negative", ], aes(x = Final.Score)) +
+#   #xlim(0, 180) +
+#   xlab("Final Course Score") +
+#   ylab("density") +
+#   scale_x_continuous(breaks = seq(0, 100, 10)) + 
+#   scale_y_continuous(breaks = seq(0, 0.06, by = 0.005)) + 
+#   ggtitle("") +
+#   theme(plot.title = element_text(hjust = 0.5), 
+#         panel.grid.major.x = element_blank(), panel.grid.minor.x = element_blank(),
+#         panel.grid.minor.y = element_blank()) +
+#   geom_density(bw = 4, aes(fill = attitude.ec$attitude.ec.pn[df.data$attitude.ec.pn == "positive" | df.data$attitude.ec.pn == "negative"]), size=0.25, alpha=.4) + 
+#   scale_fill_manual(values = c("blue", "green")) +
+#   geom_vline(xintercept = median(df.data$Final.Score[which(attitude.ec$attitude.ec.pn == "negative")]), col = "blue", size = 1, linetype = "dashed") + 
+# #  geom_vline(xintercept = median(df.data$Final.Score[which(attitude.ec$attitude.ec.pn == "neutral")]), col = "blue", size = 1, linetype = "dashed") + 
+#   geom_vline(xintercept = median(df.data$Final.Score[which(attitude.ec$attitude.ec.pn == "positive")]), col = "green", size = 1, linetype = "dashed") + 
+#   theme(legend.title = element_blank()) + 
+# ggtitle("Enjoyment/Comfort") + 
+#   theme(axis.text=element_text(size=14),
+#         axis.title=element_text(size=16),
+#         plot.title = element_text(size = 22, hjust=0),
+#         legend.text = element_text(size = 14))
+
+finalscore.attitude.ec.hist <- ggplot(data = df.data, aes(x = Final.Score)) +
+  #xlim(0, 180) +
+  xlab("Final Course Score") +
+  ylab("density") +
+  scale_x_continuous(breaks = seq(0, 100, 10)) + 
+  scale_y_continuous(breaks = seq(0, 0.06, by = 0.005)) + 
+  ggtitle("") +
+  theme(plot.title = element_text(hjust = 0.5), 
+        panel.grid.major.x = element_blank(), panel.grid.minor.x = element_blank(),
+        panel.grid.minor.y = element_blank()) +
+  geom_density(bw = 4, aes(fill = attitude.ec$attitude.ec.pn), size=0.25, alpha=.4) + 
+  scale_fill_manual(values = c("red", "blue", "green")) +
+  geom_vline(xintercept = median(df.data$Final.Score[which(attitude.ec$attitude.ec.pn == "negative")]), col = "red", size = 1, linetype = "dashed") + 
+  geom_vline(xintercept = median(df.data$Final.Score[which(attitude.ec$attitude.ec.pn == "neutral")]), col = "blue", size = 1, linetype = "dashed") + 
+  geom_vline(xintercept = median(df.data$Final.Score[which(attitude.ec$attitude.ec.pn == "positive")]), col = "green", size = 1, linetype = "dashed") + 
+  theme(legend.title = element_blank()) + 
+ggtitle("Enjoyment/Comfort") + 
+  theme(axis.text=element_text(size=14),
+        axis.title=element_text(size=16),
+        plot.title = element_text(size = 22, hjust=0),
+        legend.text = element_text(size = 14))
+
+#######################
+# Is there a significant difference in Course Score
+# for different levels of utility attitude (negative, neutral, positive) ?
+#######################
+
+attitude.u <- data.frame(a23, a24, a29, a30, a32,
+                          a34, a35)
+attitude.u.mean <- rowMeans(attitude.u, na.rm = TRUE)
+attitude.u <- mutate(attitude.u, attitude.u.pn = case_when((attitude.u.mean < 0) ~ 'negative', 
+                                                              (attitude.u.mean > 0) ~ 'positive', 
+                                                              (attitude.u.mean == 0) ~ 'neutral'))
+
+attitude.u$attitude.u.pn <- as.factor(attitude.u$attitude.u.pn)
+df.data$attitude.u.pn <- attitude.u$attitude.u.pn
+
+n.u.pos <- sum(attitude.u$attitude.u.pn == "positive", na.rm = TRUE)
+n.u.neg <- sum(attitude.u$attitude.u.pn == "negative", na.rm = TRUE)
+n.u.neu <- sum(attitude.u$attitude.u.pn == "neutral", na.rm = TRUE)
+
+p.u.pos <- (n.u.pos/n) * 100
+p.u.neg <-  (n.u.neg /n) * 100
+p.u.neu <-  (n.u.neu /n) * 100
+
+attitude.u.cscore.test <- kruskal.test(attitude.u.mean ~ factor(attitude.u$attitude.u.pn))
+dt.attitude.u <- dunn.test(attitude.u.mean, g = factor(attitude.u$attitude.u.pn), method = 'Bonferroni')
+
+# finalscore.attitude.u.hist <- ggplot(data = df.data[df.data$attitude.u.pn == "positive" | df.data$attitude.u.pn == "negative", ], aes(x = Final.Score)) +
+#   #xlim(0, 180) +
+#   xlab("Final Course Score") +
+#   ylab("density") +
+#   scale_x_continuous(breaks = seq(0, 100, 10)) + 
+#   scale_y_continuous(breaks = seq(0, 0.06, by = 0.005)) + 
+#   ggtitle("") +
+#   theme(plot.title = element_text(hjust = 0.5), 
+#         panel.grid.major.x = element_blank(), panel.grid.minor.x = element_blank(),
+#         panel.grid.minor.y = element_blank()) +
+#   geom_density(bw = 4, aes(fill = attitude.u$attitude.u.pn[df.data$attitude.u.pn == "positive" | df.data$attitude.u.pn == "negative"]), size=0.25, alpha=.4) + 
+#   scale_fill_manual(values = c("blue", "green")) +
+#   geom_vline(xintercept = median(df.data$Final.Score[which(attitude.u$attitude.u.pn == "negative")]), col = "blue", size = 1, linetype = "dashed") + 
+#   #geom_vline(xintercept = median(df.data$Final.Score[which(attitude.u$attitude.u.pn == "neutral")]), col = "blue", size = 1, linetype = "dashed") + 
+#   geom_vline(xintercept = median(df.data$Final.Score[which(attitude.u$attitude.u.pn == "positive")]), col = "green", size = 1, linetype = "dashed") + 
+#   theme(legend.title = element_blank()) + 
+#   ggtitle("Perception of Utility") + 
+#   theme(axis.text=element_text(size=14),
+#         axis.title=element_text(size=16),
+#         plot.title = element_text(size = 22, hjust = 0),
+#         legend.text = element_text(size = 14))
+
+finalscore.attitude.u.hist <- ggplot(data = df.data, aes(x = Final.Score)) +
+  #xlim(0, 180) +
+  xlab("Final Course Score") +
+  ylab("density") +
+  scale_x_continuous(breaks = seq(0, 100, 10)) + 
+  scale_y_continuous(breaks = seq(0, 0.06, by = 0.005)) + 
+  ggtitle("") +
+  theme(plot.title = element_text(hjust = 0.5), 
+        panel.grid.major.x = element_blank(), panel.grid.minor.x = element_blank(),
+        panel.grid.minor.y = element_blank()) +
+  geom_density(bw = 4, aes(fill = attitude.u$attitude.u.pn), size=0.25, alpha=.4) + 
+  scale_fill_manual(values = c("red", "blue", "green")) +
+  geom_vline(xintercept = median(df.data$Final.Score[which(attitude.u$attitude.u.pn == "negative")]), col = "red", size = 1, linetype = "dashed") + 
+  geom_vline(xintercept = median(df.data$Final.Score[which(attitude.u$attitude.u.pn == "neutral")]), col = "blue", size = 1, linetype = "dashed") + 
+  geom_vline(xintercept = median(df.data$Final.Score[which(attitude.u$attitude.u.pn == "positive")]), col = "green", size = 1, linetype = "dashed") + 
+  theme(legend.title = element_blank()) + 
+  ggtitle("Perception of Utility") + 
+  theme(axis.text=element_text(size=14),
+        axis.title=element_text(size=16),
+        plot.title = element_text(size = 22, hjust = 0),
+        legend.text = element_text(size = 14))
+
+bp.attitude <- boxplot(attitude.ec.mean, attitude.u.mean, names = c("Enjoyment/Comfort", "Utility"), col = c("cornsilk", "cornsilk"))
+abline(0,0, col = "gray5", lty = "dashed", lwd = "2")
+
+##################################################
+# Test for independence between mindset/attitude #
+##################################################
+
+t.ec.u <- table(attitude.ec$attitude.ec.pn, attitude.u$attitude.u.pn)
+mosaicplot(t.ec.u, shade = TRUE, main = "", 
+               xlab = "Enjoyment/Comfort Attitude", 
+               ylab = "Perception of Utility Attitude")
+
+t.mg.ms <- table(mindset.gen$mindset.gen.gf, mindset.stat$mindset.stat.gf)
+mosaicplot(t.mg.ms, shade = TRUE)
+
+t.ec.ms <- table(attitude.ec$attitude.ec.pn, mindset.stat$mindset.stat.gf)
+mosaicplot(t.ec.ms, shade = TRUE)
+
+t.ec.mg <- table(attitude.ec$attitude.ec.pn, mindset.gen$mindset.gen.gf)
+mosaicplot(t.ec.mg, shade = TRUE)
+
+t.u.ms <- table(attitude.u$attitude.u.pn, mindset.stat$mindset.stat.gf)
+mosaicplot(t.u.ms, shade = TRUE, main = "", xlab = "Attitude (Utility)", ylab = "Mindset (Statistics)")
+
+t.u.mg <- table(attitude.u$attitude.u.pn, mindset.gen$mindset.gen.gf)
+mosaicplot(t.u.mg, shade = TRUE)
+
+@
+
+\pagenumbering{roman}
+\begin{abstract}
+\noindent
+\emph{Students in many disciplines are required to take an introductory statistics course while pursuing a college education. Despite the utility of statistical methods in future research and career pursuits, many students have negative views of statistics. We are interested in how students' mindsets and attitudes towards statistics impact their performance in an undergraduate statistics course. We administered a survey to students in several undergraduate statistics courses at Utah State University. This survey included questions addressing mathematics experience, attitudes towards statistics, mindset, and course performance. We observed that the majority of students indicated the presence of a growth mindset and positive attitudes towards statistics. Mindset was not strongly associated with course performance. Students with positive attitudes tended to have a higher final course score. Negative attitudes were associated with fixed mindsets.}
+
+\end{abstract}
+\vspace*{0.5cm}
+\newpage
+
+
+\begin{center}
+\vspace*{60mm}
+
+\subsection*{Acknowledgement}
+
+\vspace{10mm}
+
+This research was partially funded by the Utah State University College of Science.\\
+\vspace{7 mm}
+Special thanks to Dr. Kady Schneiter for her assistance throughout all stages of this research. 
+
+\vspace*{\fill}
+\end{center}
+
+
+\newpage
+
+\pagenumbering{arabic}
+\setcounter{page}{2}
+
+
+\section{Introduction}
+\paragraph{}
+Ramirez, Schau, and Emmioglu (2012) have stated that ``an ultimate goal of statistics education is to produce statistically literate adults who appropriately use statistical thinking'' (p. 57). Statistical thinking is an important skill to possess in both academic and non-academic settings. The majority of students, particularly those in science, technology, engineering, or math (STEM) degrees, will need at least a foundational understanding of statistical methods. These methods will be used throughout their undergraduate and graduate research, as well as in future career pursuits. Thus, it is important that they obtain a strong base of statistical tools upon which they can build throughout their research and careers. Outside of the academic scope, a statistical education is an important part of being a informed and contributing citizen. With the abundance of information and persuasion that has risen through the internet, news reports, and advertisements, it is important for students to be able to think critically about claims that are made. Despite the apparent need for a quality statistical education, many degrees only require one or two introductory statistics courses. This is a limited time in which students can learn the techniques of statistical thinking and methods. With these things in mind, it is a valuable and worthwhile endeavor to determine how statistical education can be continually improved and refined.
+
+\paragraph{}
+This refinement can take a variety of forms. Some may suggest that teachers increase their use of technology, have the students use a statistical software package, collect data in class to use for examples, or use some other teaching strategy to more successfully engage students in the learning process. While these strategies may be effective and necessary in improving the learning process, we decided to take a closer look at the students' characteristics, particularly those involving their mindset and attitudes toward statistics. This paper explores the relationship between these characteristics and students' success in a statistics course.
+
+\section{Background}
+\paragraph{}
+Despite the strong importance that statistical thinking and methods will have in future academic experiences, many students view statistics as a difficult and unnecessary course. Dykeman (2011) found that ``a random survey of students entering a graduate-level education program rated the course requirement in statistics as the least desirable of all courses required for their academic major'' (p. 441). This aversion to statistics could reasonably be considered a symptom of negative attitudes and a fixed mindset toward statistics. If this is the case, and if mindset and attitude significantly impact the learning process, students with these characteristics may be at a disadvantage in their statistical education. If students' statistical education is significantly hindered, their ability to effectively conduct and understand academic research in the future could be impaired.
+
+\paragraph{}
+Carol Dweck has pioneered the study of growth and fixed mindsets and has conducted extensive research on how mindset impacts performance in a variety of applications. She describes individuals with a growth mindset as believing that their level of intelligence can increase over time. On the other hand, those with a fixed mindset believe that, despite their work or efforts, their level of intelligence is predetermined and stationary (Dweck, 2010, p. 16). Students with fixed mindsets are more likely to shy away from difficult problems due to fear of failing to find a solution. Students with growth mindsets tend to enjoy challenging problems and the effort that goes into solving them (Dweck, 2010, p. 16 ). In 2008, Dweck published some particularly relevant research claiming that ``students' mindsets play a key role in their math and science achievement'' (p. 2). Little research has been conducted to determine the extent of this effect in statistics education, but it is likely that mindset would have a similar effect in statistics education as it does in mathematics education.
+
+\paragraph{}
+Bahnik and Vranka (2016) conducted a study in which the relationship between academic performance and mindset was examined. College entrance exam scores for over 5600 students were collected, along with their responses to questions designed to measure mindset. Despite the evidence and claims suggesting that mindset is a good predictor of performance, Bahnik and Vranka found that ``results in the test were slightly negatively associated with growth mindset'' (Bahnik \& Vranka, 2016, p. 139). This is the only published research we found that suggested that there may not be a strong relationship between academic performance and mindset. We found this paper particularly interesting since the population that was sampled (prospective college students) is relevant to our research interests.
+
+\paragraph{}
+Much has been done to investigate the impact of student attitudes towards statistics on course performance (Dykeman, 2011; Evans, 2007; Tempelaar et al., 2007). Evans (2007) found small but positive correlations between student attitudes and course performance (p. 27). Evans (2007) cites a number of other studies that agree with these findings (p. 24).  In addition, Dempster \& McCorry (2009) and Vanhoof et al. (2007) obtained similar results indicating a positive correlation between student attitudes and course performance. 
+
+\paragraph{}
+Statistics anxiety is closely related to attitudes towards statistics and has also been widely researched (Dykeman, 2011, p. 442). A variety of factors may impact students' attitudes and anxiety towards statistics including perceived difficulty, perceived ego threat, age, and relevant background experience (Dykeman, 2011, p. 442). Dykeman (2011) found that students with previous experience in statistics had higher levels of statistics anxiety and lower expectations of success in a statistics course (p. 444). 
+
+
+
+\section{Methods}
+\paragraph{}
+At the beginning of the Fall 2016 semester, an online Qualtrics survey was administered to students enrolled in several introductory statistics courses at Utah State University. Courses involved in the survey included an arithmetic-based statistics course ($n = 248$), an algebra-based statistics course ($n = 107$), and a calculus-based statistics course ($n = 118$). Survey participants were 62\% female and 38\% male. Students were informed that their consent to participate in the study was optional and that their decision on whether to participate would not affect their grade. Some professors did offer a small amount of extra-credit as an incentive for participation.
+
+\vspace{5mm}
+Items on the survey included:
+\begin{enumerate}
+\item{General descriptive items (age, class rank, major, current employment status)}
+\item{Questions about previous mathematics and statistics experience}
+\item{Statements about the participant's mindset}
+\item{Statements about the participant's attitudes towards statistics}
+\end{enumerate}
+
+\paragraph{}
+There was a total of fourteen statements about mindset included in the survey. These statements were adapted from Carol Dweck's mindset assessment (2006, p. 21). Seven of these statements referred specifically to students' mindset towards proficiency in statistics (e.g. `` You have a certain amount of talent in statistics, and you can't really do much to change it.''). The other seven statements were related to the students' mindset about intelligence generally (e.g. `` To be honest, you can't really change how much intelligence you have.''). The students were asked to rate how they felt about these statements on the following four-point Likert scale: Strongly Disagree, Mostly Disagree, Mostly Agree, Strongly Agree. Because the statements were meant to quantify the student's overall mindset towards statistics and overall mindset generally, a composite statistical mindset score and a composite general mindset score were created for each participant (Boone \& Boone, 2012). Responses associated with growth mindset were given values of $1$ and $2$, while responses associated with fixed mindset were given values of $-1$ or $-2$. Composite scores were calculated by finding the mean response to the statements in each category. Negative composite mindset scores were classified as being a ``fixed mindset'' and positive composite mindset scores were classified as being a ``growth mindset''.    
+
+\paragraph{}
+There was a total of 17 statements regarding attitude included in the study. Ten of these statements were focused on assessing the students' enjoyment of and comfort with statistics (e.g. `` I enjoy learning Statistics.''). The other seven assessed the students' perception of the utility of statistics (e.g. ``Statistics helps me understand the world around me.''). Students were asked to rate how much they agreed or disagreed with the statements about attitudes on a five-point Likert scale : Strongly Disagree, Disagree, Neutral, Agree, Strongly Agree. Responses associated with a positive attitude were assigned values of $1$ or $2$, neutral responses were assigned a value of 0, and responses associated with a negative attitude were given values of $-1$ or $-2$. In a similar method as was used for the responses to the mindset statements, two attitude scores were calculated for each participant. This was done by calculating the mean of their responses for each type of attitude statement. Likert-score surveys are one of the most common methods used to quantify students' attitudes about statistics (Ramirez, Schau, \& Emmioglu, 2012). Positive composite scores were classified as a ``positive attitude'' and negative scores were classified as a ``negative attitude''. 
+
+\paragraph{}
+A combination of inference and visualizations was used to analyze and understand these data. \emph{R: A language and environment for statistical computing} was used perform this analysis (2017). 
+
+\section{Findings}
+\paragraph{}
+
+We observed a surprisingly high proportion of growth mindsets among the students. Below is a table displaying the percentages of growth and fixed mindset for both the statistical and general mindset categories. 
+
+\begin{center}
+\begin{tabular}{ |c|c|c| }
+ \hline
+      & \% Growth & \% Fixed\\
+ \hline
+ Statistical Mindset & 95 & 5\\
+ \hline
+ General Mindset & 94 & 6\\
+ \hline
+\end{tabular}
+\end{center}
+
+\begin{center}
+<<fig=TRUE, height=4>>=
+par(mai = c(0.5,0.5,0.254,0.5))
+boxplot(mindset.gen.mean, mindset.stat.mean, names = c("General Mindset", "Statistical Mindset"), col = c("cornsilk", "cornsilk"), ylim = c(-2,2))
+abline(0,0, col = "gray5", lty = "dashed", lwd = "2")
+@
+\end{center}
+
+\paragraph{}
+Admittedly, due to the strict cutoff between growth and fixed mindset scores, students with a slightly positive composite mindset score (i.e. slightly growth mindset) would be classified as having a growth mindset. However, the boxplot displayed below shows that over 75\% of the students had a  composite mindset greater than or equal to 1.
+
+\paragraph{}
+The large proportion of growth mindsets is consistent with findings from research done by Snipes and Tran (2017) who also found that the majority of their research participants gave responses consistent with a growth mindset (p. 6). There are several possible explanations for this phenomenon as observed in our data. First, it is possible that the general population tends to have more growth mindsets than fixed mindsets. It is also possible that college students, or even college students who register for statistics courses, tend to have growth mindsets rather than fixed mindsets. Another possible explanation could be that some students may tend to give survey responses that reflect the mindset they desire instead of reflecting their actual mindset. It is likely that many students are familiar with the concepts of growth and fixed mindsets and that they know that a growth mindset is supposed to lead to better performance. For example, when a student reads the statement, "No matter who you are, you can significantly change your level of talent in statistics.", they might indicate that they agree with the statement because previous experience has taught them that they should have a growth mindset.
+
+\paragraph{}
+The high proportion of growth mindsets among survey participants could also be explained by the demographics and characteristics that are typical of an individual that is enrolled in a college statistics course. Snipes and Tran (2017) found that students who had lower prior academic achievement and/or were economically disadvantaged tended to have lower growth mindset scores (p. 10). It is possible that students with lower academic achievement and/or lower economic status in high school may not have been accepted to the university, had the means to afford expensive tuition rates, or pursued a college education in the first place. The fact that better performance in high school and a higher economic status increase the probability of a student pursuing a college education could explain the high proportion of growth mindsets observed.
+
+\paragraph{}
+The distribution of composite attitude scores was not as extreme as the distribution of mindset scores. Below is a table displaying the percentages of positive, negative, and neutral attitudes in both the enjoyment/comfort and utility categories, followed by a boxplot showing the distribution of composite scores for both attitude categories. 
+
+\begin{center}
+\begin{tabular}{ |c|c|c|c| }
+ \hline
+       & \% Positive & \% Negative & \% Neutral\\
+ \hline
+ Enjoyment/Comfort & 64 & 30 & 6\\
+ \hline
+ Perception of Utility & 84 & 12 & 4\\
+ \hline
+\end{tabular}
+
+
+<<fig=TRUE, height=4>>=
+par(mai = c(0.5,0.5,0.5,0.5))
+boxplot(attitude.ec.mean, attitude.u.mean, names = c("Enjoyment/Comfort", "Utility"), col = c("cornsilk", "cornsilk"), ylim = c(-2,2))
+abline(0,0, col = "gray5", lty = "dashed", lwd = "2")
+@
+\end{center}
+
+\paragraph{}
+The majority of students indicated positive attitudes towards statistics in both categories. Over 75\% of the students had positive perceptions about the usefulness and utility of statistics. Less indicated that they enjoy actually using statistics, but the majority of students still gave responses consistent with positive attitudes toward enjoying statistics.
+
+\paragraph{}
+Inference was performed to better understand the relationship between the composite mindset and attitude scores and success in the course. Instead of using standard parametric tests (such as a traditional t-test), non-parametric methods were used because these data did not meet the assumptions necessary for parametric tests. Final course score (out of 100\%) was used as a metric for performance in the course. 
+
+\paragraph{}
+A Wilcoxon rank sum test (equivalent to the Mann-Whitney test) was performed to determine if there is a significant difference in final course score between students with a growth mindset and students with a fixed mindset. For both the General Mindset category and the Statistics Mindset category, the test indicated that there is a significant difference between the final course scores of students in the growth mindset group and the fixed mindset group (p < 0.0001 for both tests). Although a significant difference was detected statistically, there does not seem to be a significant difference when considering the context of these data. The confidence intervals for the true location shift between the growth and fixed mindset groups for the General Mindset and Statistics Mindset groups respectively are (1.7, 2.1) and (1.4, 1.9). This means that we can be 95\% confident that the shifts in final course score between the growth and fixed mindset groups are at most about 2 percentage points. From an educational perspective, a difference of 2 percent in a grade is not particularly meaningful.
+
+\paragraph{}
+The two plots below show overlaid histograms of the final course scores for students with fixed or growth mindsets. The vertical dashed lines mark the median course score for each category.
+
+\begin{center}
+<<fig=TRUE, width = 10, height = 7>>=
+ggarrange(finalscore.mindset.stat.hist, finalscore.mindset.gen.hist, nrow = 2, ncol = 1)
+@
+\end{center}
+
+\paragraph{}
+It is interesting to note that there is a larger shift between the growth and fixed grade distributions for statistics mindset than there is for general mindset. If mindset does make a difference on course performance, it would be reasonable to hypothesize that mindset towards a specific activity would more effectively predict performance in that activity than a measure of mindset generally. 
+
+\paragraph{}
+A Kruskal-Wallis test was performed to determine if there is a significant difference in final course score for different levels of enjoyment/comfort attitudes. We found that there is a significant difference (p < 0.0001) in course score for students in the three attitude categories (negative, positive, neutral). A similar test was performed to determine if there is a significant difference in final course score for different levels of utility perception attitudes. We found that there is a significant difference (p < 0.0001) in course score for students in the three attitude categories.
+
+\begin{center}
+<<fig=TRUE, width = 10, height = 7>>=
+ggarrange(finalscore.attitude.ec.hist, finalscore.attitude.u.hist, nrow = 2, ncol = 1)
+@
+\end{center}
+
+\paragraph{}
+A post-hoc Dunn's test revealed that the largest difference in final course score was between students with positive and negative attitudes. This suggests slightly stronger evidence of attitude significantly impacting academic performance than we found of mindset impacting academic performance. 
+
+\paragraph{}
+We also found evidence of an association or dependence between students' mindsets and attitudes. Mosaic plots were selected as an appropriate way to investigate and visualize this dependence. Mosaic plots display the levels of attitude (or mindset) along the plot's x and y-axes. The size of each cell is proportional to the number of observations in that combination of levels of the two variables. The shading of the cell indicates if there were a greater or lesser proportion of observations in that category than would be expected if independence existed. A cell shaded red has fewer observations than would be expected if the two variables in question are independent. A cell shaded blue has more observations than would be expected if the variables are independent. 
+
+\paragraph{}
+The first mosaic plot (below) portrays the relationship between the two attitude types. The dark blue cell in the upper left-hand corner of the plot indicates that there is a much higher proportion of students with both types of negative attitudes than we would expect if these types of attitudes were independent from each other. The red cells to the right of and below the blue cell tell the same story; they indicate that there are fewer individuals with a positive attitude towards enjoyment/comfort and a negative attitude towards perception of utility (or vice-versa) than we'd expect if these attitude types were independent from each other. A similar relationship exists for general and statistical mindset as we observed for the two types of attitude. There were a higher proportion of students with both a fixed statistical mindset and a fixed general mindset than we'd expect if these two types of mindset were independent. 
+
+\begin{center}
+<<fig=TRUE, width = 10, height = 5>>=
+par(mai = c(0.5,0.5,0.5,0.5))
+mosaicplot(t.ec.u, shade = TRUE, main = "", 
+               xlab = "Attitude (Enjoyment/Comfort)", 
+               ylab = "Attitude (Utility)")
+
+@
+\end{center}
+
+
+Next, we observed that mindset and attitude were also related. The mosaic plot below shows that dependence existed between statistics mindset and perception of utility attitude. Again, the blue cell in the top left-hand corner of the plot indicates that there is a higher proportion of individuals with a fixed mindset and negative attitude than we would expect if these variables were independent. Similar trends were observed between other combinations of mindset type and attitude type. 
+
+\begin{center}
+<<fig=TRUE, width = 10, height = 5>>=
+par(mai = c(0.5,0.5,0.5,0.5))
+mosaicplot(t.u.ms, shade = TRUE, main = "", 
+           xlab = "Attitude (Utility)", 
+           ylab = "Mindset (Statistics)")
+@
+\end{center}
+
+\section{Discussion}
+
+\paragraph{}
+The large proportion of students with a growth mindset made the analysis of mindset and course performance difficult. When nearly every individual in a population has a given trait, it is difficult to detect whether that trait makes any difference in a response variable. Because about 95\% of the students indicated a growth mindset, it is difficult to see if growth mindset makes a difference in course performance. It may be valuable to conduct a meta-analysis based on existing literature to further investigate the impact of mindset on academic performance.
+
+\paragraph{}
+On the other hand, because the proportions of students with positive attitudes and negative attitudes were more balanced than the proportions of growth and fixed mindset, we were able to feel more confident in the comparison that was performed. We observed that students with positive attitudes toward the use of statistics and its usefulness tended to do better in the course than students with negative attitudes. Additionally, over half of the students indicated a positive attitude towards both attitude categories. This is encouraging for statistics educators, and may indicate that the negative attitudes towards statistics may not be as prevalent as previously assumed. 
+
+\paragraph{}
+We also observed that statistical mindset had a greater impact on course performance than general mindset. Another possible research direction is to investigate how an activity-specific mindset and a general mindset may have different effects on performance in that activity.  
+
+\paragraph{}
+The large proportion of students who indicated a growth mindset in their responses to the survey is another aspect of this study that deserves further investigation. It would be valuable to conduct a follow-up study to determine whether the observed proportion of students with growth mindsets reflects reality or if some bias was introduced in some portion of the data collection or analysis. This follow-up study could include research on bias in self-reporting surveys and data collection. For example, there may be some correction that could be made in the structure of the survey, the wording of the questions and statements, the way it is administered, or in the analysis. More specific research could also be done to determine if there are other ways to measure growth and fixed mindset besides a self-reported survey. On the other hand, if the proportion of students with a growth mindset is indeed as high as we observed it to be, further research should be conducted to explore if this is the case in other age groups, demographic groups, and mindset categories. 
+
+
+\newpage
+
+\begin{center}
+References
+\end{center}
+
+\begin{hangparas}{.25in}{1}
+
+Boone, D. A., \& Boone , H. N. Jr. (2012). Analyzing Likert Data. Journal of Extension, 50(2). Retrieved from https://www.joe.org/joe/2012april/tt2.php
+
+\vspace{5mm}
+
+Bahník, S., \& Vranka, M. A. (2017). Growth mindset is not associated with scholastic aptitude in a large sample of university applicants. Personality and Individual Differences, 117(Supplement C), 139-143. https://doi.org/10.1016/j.paid.2017.05.046
+
+\vspace{5mm}
+
+Dempster, M., \& McCorry, N. K. (2009). The Role of Previous Experience and Attitudes Toward Statistics in Statistics Assessment Outcomes among Undergraduate Psychology Students. Journal of Statistics Education, 17(2). https://doi.org/10.1080/10691898.2009.11889515
+
+
+\vspace{5mm}
+
+Dweck, C. S. (2000). Self-Theories: Their Role in Motivation, Personality, and Development. New York: Psychology Press.
+
+\vspace{5mm}
+
+Dweck, C. S. (2008). Mindsets and Math/Science Achievement. The Opportunity Equation, 17.
+
+\vspace{5mm}
+
+Dweck, C. S. (2010). Even Geniuses Work Hard. Educational Leadership, 68(1), 16-20.
+
+\vspace{5mm}
+
+Dykeman, B. F. . (2011). Statistics Anxiety: Antecedents and Instructional Interventions. Education, 132(2), 441-446.
+
+\vspace{5mm}
+
+Evans, B. (2007). Student Attitudes, Conceptions, and Achievement in Introductory Undergraduate College Statistics. Mathematics Educator, 17(2), 24-30.
+
+\vspace{5mm}
+
+R Core Team (2017). R: A language and environment for statistical computing. R
+Foundation for Statistical Computing, Vienna, Austria. URL
+https://www.R-project.org/.
+
+\vspace{5mm}
+
+Ramirez, C., Schau, C., \& Emmioglu, E. (2012). The importance of attitudes in statistics education. Statistics Education Research Journal, 11(2).
+
+\vspace{5mm}
+
+Schau, C., \& Emmioglu, E. (2012). Do Introductory Statistics Courses in the United States Improve Students' Attitudes? Statistics Education Research Journal, 11(2), 86-94.
+
+\vspace{5mm}
+
+Snipes, J., \& Tran, L. (2017). Growth mindset, performance avoidance, and academic behaviors in Clark County School District. Washington, DC: US Department of Education, Institute of Education Sciences, National Center for Education Evaluation and Regional Assistance, Regional Educational Laboratory West.
+
+\vspace{5mm}
+
+Tempelaar, D. T., Schim van der Loeff, S., \& Gijselaers, W. H. (2007). A structural equation model analyzing the relationship of students' attitudes toward statistics, prior reasoning abilities and course performance. Statistics Education Research Journal, 6(2), 78-102.
+
+\vspace{5mm}
+
+Vanhoof, S., Castro Sotos, A. E., Onghena, P., Verschaffel, L., Van Dooren, W., \& Van den Noortgate, W. (2006). Attitudes Toward Statistics and Their Relationship with Short- and Long-Term Exam Results. Journal of Statistics Education, 14(3). Retrieved from http://ww2.amstat.org/publications/jse/v14n3/vanhoof.html\#Sect4
+
+
+\end{hangparas}
+
+\end{document}

@@ -1,0 +1,1155 @@
+% !Rnw root = lect_chapter5_v2.Rnw
+
+\def\jsprivatechfive{1} % show additional details
+%\def\jsprivatechfive{0} % do NOT show additional details
+
+
+
+\section{Univariate Plots}
+
+%{\bf (Based on \cite{Wa97}, Chapter 1 \& \cite{Tu83}, Chapter 2)}
+
+
+\subsection{Histograms}
+
+
+\noindent
+\underline{Example 1:} \\
+Four histograms of the same data set, showing the
+weights in pounds of 132 professional male athletes.
+
+\begin{figure}[ht]
+\centering{\includegraphics[width=5.0in]{Scans//Stat1040_histograms.jpg}}
+\caption{\label{Stat1040_histograms}
+Symanzik, Stat 1040 Lecture Notes, Chapter~3: Four Histograms of the same data set.
+}
+\end{figure}
+
+
+\noindent
+\underline{Question:} \\
+What can we conclude about the underlying data? 
+And which of these four histograms best reveals this fact?
+
+
+\newpage
+
+
+\noindent
+\underline{Example 2:} \\
+An interactive applet that allowed to change the number of classes
+in a histogram via a slider could be found at
+\verb|http://www.stat.sc.edu/~west/javahtml/Histogram.html|:
+\begin{quotation}
+\noindent
+``{\bf Histogram Applet:} \\[0.2cm]
+This applet is designed to teach students how bin widths (or the number of bins) 
+affect a histogram. The histogram below is for the Old Faithful data set. The observations 
+are the duration (in minutes) for eruptions of the Old Faithful geyser in 
+Yellowstone National Park. Students should interactively change the bin width 
+by dragging the arrow underneath the bin width scale. For large bin widths, 
+the bimodal nature of the dataset is hidden, and for small bin widths the plot 
+reduces to a spike at each data point. What bin width do you think provides 
+the best picture of the underlying data?''
+\end{quotation}
+
+
+While the URL above no longer exists, the following applet 
+from the Rossman and Chance Applet Collection has a similar functionality:
+\url{http://www.rossmanchance.com/applets/Dotplot.html}
+
+First prepare the {\it faithful} data in R so it appears in a single column
+without any additional spaces before/after the values:
+
+<<results=hide>>=
+for (i in 1:length(faithful$eruptions)) {
+       cat(paste0(faithful$eruptions[i], "\n"))
+}
+@
+
+Then copy the data from your R console and paste them into the ``Sample data''
+box on the web site. Click on ``Use data'' and select ``Histogram''.
+Use the slider and change the ``Number of bins''. What happens when this number increases?
+
+
+\newpage
+
+
+\noindent
+\underline{Example 3:} \\
+
+Example data sets from \citet{Web2008}:
+<<fig=TRUE>>=
+# Weber (2008), Set 1:
+
+data1 <- c(.968, .982, .991, .993, .998, .999, 1.004, 1.004,
+  1.007, 1.010, 1.012, 1.015, 1.017, 1.019, 1.021,
+  1.035, 1.037, 1.037, 1.039, 1.039, 1.042, 1.042,
+  1.047, 1.053, 1.055, 1.059, 1.081, 1.107, 1.1305)
+
+par(mfrow = c(1, 3))
+
+hist(data1) #Default
+
+hist(data1, breaks = 0.9356 + (0:7) * 0.0325) #A
+
+hist(data1, breaks = 0.9600 + (0:7) * 0.0300) #B
+
+summary(data1)
+@
+
+<<fig=TRUE>>=
+# Weber (2008), Set 2:
+
+data2 <- c(2.05, 2.27, 2.50, 2.95, 3.18, 3.41, 3.64, 3.86, 4.09, 4.32,
+  5.68, 5.91, 6.14, 6.36, 6.59, 6.82, 7.05, 7.50, 7.73, 7.95)
+
+par(mfrow = c(2, 6))
+
+hist(data2)
+
+hist(data2, breaks = 1.425 + (0:3) * 3.2075) #C
+
+hist(data2, breaks = -1.048 + (0:3) * 3.2075) #D
+
+
+hist(data2, breaks = 1.9767 + (0:4) * 1.9789) #E
+
+hist(data2, breaks = 0.1078 + (0:4) * 1.9789) #F
+
+
+hist(data2, breaks = 1.9829 + (0:5) * 1.4750) #G
+
+hist(data2, breaks = 0.6421 + (0:5) * 1.4750) #H
+
+
+hist(data2, breaks = 1.9619 + (0:4) * 1.9060) #I
+
+hist(data2, breaks = 0.8944 + (0:4) * 1.9060) #J
+
+
+hist(data2, breaks = -0.6800 + (0:4) * 2.8400) #K
+
+hist(data2, breaks = 1.9542 + (0:4) * 1.5229) #L
+
+
+hist(data2, breaks = 1.9619 + (0:7) * .9060) #New 1
+
+summary(data2)
+@
+
+{\bf Conclusion:} ``Never believe any statistics you haven't falsified yourself.'' \\
+{\tiny
+(\url{http://sanmateorealestateblog.com/real-estate/statistics-real-estate/never-believe-any-statistics-you-havent-falsified-yourself/})
+}
+
+
+\newpage
+
+
+The R help page for hist indicates:
+\begin{quotation}
+``The generic function hist computes a histogram of the given data values.''
+\end{quotation}
+
+
+The R help page for the Iris data set indicates:
+\begin{quotation}
+``This famous (Fisher's or Anderson's) iris data set gives the measurements 
+in centimeters of the variables sepal length and width and petal length and width, 
+respectively, for 50 flowers from each of 3 species of iris. The species 
+are {\it Iris setosa}, {\it versicolor}, and {\it virginica}.
+
+iris is a data frame with 150 cases (rows) and 5 variables (columns) named 
+Sepal.Length, Sepal.Width, Petal.Length, Petal.Width, and Species.''
+\end{quotation}
+
+
+\noindent
+\underline{Choosing the number of classes for a histogram:} \\
+As seen in the previous three examples, a bad choice for the number
+of classes (nclass or breaks in the R command) in a histogram 
+or the starting point of an interval and its width
+can almost entirely hide the most
+interesting information of the underlying data.
+
+Several suggestions for the number of classes exist and are 
+summarized in \cite{VR2002}, p.~112. We define $\mbox{range} = x_{(n)} - x_{(1)}$, 
+where $n$ represents the number of observations.
+\begin{itemize}
+\item Sturges' formula (default in R): 
+\[
+\mbox{nclass} = \lceil \log_2 n + 1 \rceil, ~~~ \mbox{bin width} = \frac{\mbox{range}}{\mbox{nclass}},
+\]
+where $\lceil \ldots \rceil$ indicates the ceiling function.
+
+\item Scott's 1979 formula (``scott'' in R):
+\[
+\mbox{bin width} = 3.5 ~ \hat{\sigma} ~ n^{-1/3}, ~~~ \mbox{nclass} = \frac{\mbox{range}}{\mbox{bin width}},
+\]
+where $\hat{\sigma}$ is the estimated standard deviation.
+
+\item Freedman and Diaconis 1981 formula (``fd'' in R): 
+\[
+\mbox{bin width} = 2 ~ \mbox{IQR} ~ n^{-1/3}, ~~~ \mbox{nclass} = \frac{\mbox{range}}{\mbox{bin width}},
+\]
+where $\mbox{IQR}$ is the inter--quartile range.
+
+\item Sometimes, the use of $\mbox{nclass} \approx \sqrt{n}$ is suggested: \\[0.2cm]
+%
+\url{http://www.qimacros.com/qiwizard/how-to-determine-histogram-bin-interval.htm}
+suggests: {\it ``Take the square root of the number of data points and round up to 
+determine the number of bins required.''} \\[0.2cm]
+%
+\url{http://www.moresteam.com/toolbox/t417.cfm} suggests:
+{\it ``Calculate the square root of the number of data points and round to the 
+nearest whole number. In the case of our height example, 
+the square root of 50 is 7.07, or 7 when rounded.} \\[0.2cm]
+%
+\url{http://www.micquality.com/introductory_statistics/int08.htm} states: \linebreak[4]
+{\it ``There are various ways of calculating the number of bins. I find that using the square root 
+of the number of data values gives as good a result as the more complicated methods. 
+The value is usually on the low side, but you can adjust it upwards to get convenient bin boundaries. 
+Treat the calculated number of bins as a starting point, 
+and adjust it as necessary to give the result you prefer.''}
+
+\end{itemize}
+
+
+\underline{\bf Example:}
+%
+<<fig=TRUE>>=
+head(iris)
+plength <- iris[, 3]
+n <- length(plength)
+
+par(mfrow = c(2, 2))
+
+hist(plength, freq = FALSE,
+     main = "Default (Sturges) Breaks")
+hist(plength, breaks = as.integer(sqrt(n)), freq = FALSE,
+     main = "sqrt(n) Breaks")
+hist(plength, breaks = "scott", freq = FALSE,
+     main = "Scott Breaks")
+hist(plength, breaks = "fd", freq = FALSE,
+     main = "FD Breaks")
+
+nclass.Sturges(plength)
+sqrt(n)
+nclass.scott(plength)
+nclass.FD(plength)
+@
+
+Now in ggplot2:
+
+<<fig=TRUE>>=
+library(ggplot2)
+library(gridExtra)
+
+h1 <- ggplot(iris, aes(x = plength)) +
+  geom_histogram()
+
+h2 <- ggplot(iris, aes(x = plength)) +
+  geom_histogram(bins = nclass.Sturges(plength)) +
+  ggtitle("Sturges Breaks") +
+  theme(plot.title = element_text(hjust = 0.5))
+
+h3 <- ggplot(iris, aes(x = plength)) +
+  geom_histogram(bins = as.integer(sqrt(n))) +
+  ggtitle("sqrt(n) Breaks") +
+  theme(plot.title = element_text(hjust = 0.5))
+
+h4 <- ggplot(iris, aes(x = plength)) +
+  geom_histogram(bins = nclass.scott(plength)) +
+  ggtitle("Scott Breaks") +
+  theme(plot.title = element_text(hjust = 0.5))
+
+h5 <- ggplot(iris, aes(x = plength)) +
+  geom_histogram(bins = nclass.FD(plength)) +
+  ggtitle("FD Breaks") +
+  theme(plot.title = element_text(hjust = 0.5))
+
+h6 <- ggplot(iris, aes(x = plength)) +
+  geom_histogram(binwidth = 1.0, center = 0.5) +
+  ggtitle("Manually") +
+  theme(plot.title = element_text(hjust = 0.5))
+
+grid.arrange(h1, h2, h3, h4, h5, h6,  nrow = 2)
+@
+
+Finally, how do the histograms for the three species look like?
+
+<<fig=TRUE>>=
+par(mfrow = c(2, 2))
+
+hist(plength, main = "all")
+
+hist(plength[1:50], main = "setosa")
+
+hist(plength[51:100], main = "versicolor")
+
+hist(plength[101:150], main = "virginica")
+@
+
+\underline{\bf Note:} 
+\begin{itemize}
+\item These various methods (Sturges, Scott, FD, sqrt) provide suggestions
+for the number of classes only. To enforce particular
+breaks, we have to provide a vector giving the exact break points 
+between the histogram cells. However, good software will use the suggestions
+and then make further adjustments to obtain meaningful class breaks for a human
+reader, e.g., use integers (and multiples of 5 or 10, etc.) as the boundaries.
+
+\item Carefully check whether class intervals are left--open or right--open.
+R class intervals by default are left--open whereas most readers prefer right--open
+intervals. Also, check in which class interval the minimum and maximum of a data set are
+included. For continuous data, there will be little differences in the 
+appearance of a histogram, but for discrete data, different settings
+may result in a dramatically different visual appearance of a histogram.
+R provides arguments  (include.lowest and right) to adjust these options.
+
+\item \cite{WWPJH96}, p.~30, state:
+{\bf ``Since it is relatively complicated both to draw and to read
+histograms with classes of different size we recommend that, as far
+as possible, both tables and charts should be made with classes
+of equal length.''}
+\end{itemize}
+
+\newpage 
+
+
+\subsection{Averaged Shifted Histograms}
+
+
+\cite{Sym2004}, p.~307, states:
+\begin{quotation}
+``\citet{Sc92} provides a general overview on techniques
+for density estimation, including
+averaged shifted histograms (ASH)
+and kernel density estimators,
+including possible visualization techniques via
+contour surfaces,
+(transparent) $\alpha$--level contours,
+and contour shells.''
+\end{quotation}
+
+ASH plots were originally introduced in \citet{Sc85}.
+They are created by averaging several shifted histograms
+and further smoothing the result. Details are provided
+in Chapter~5 of \citet{Sc92}.
+
+ASH plots may not be easy to explain to non--statisticians,
+but they may help to determine which histograms may be
+closest to the underlying data.
+
+
+<<fig=TRUE>>=
+# Weber (2008), Set 1:
+
+data1 <- c(.968, .982, .991, .993, .998, .999, 1.004, 1.004,
+  1.007, 1.010, 1.012, 1.015, 1.017, 1.019, 1.021,
+  1.035, 1.037, 1.037, 1.039, 1.039, 1.042, 1.042,
+  1.047, 1.053, 1.055, 1.059, 1.081, 1.107, 1.1305)
+
+library(ash)
+
+f1 <- ash1(bin1(data1, nbin = 50), 5) # compute ash estimate
+
+par(mfrow = c(1, 3))
+
+hist(data1, freq = FALSE, ylim = c(0, 14)) #Default
+lines(f1 , type = "l") # line plot of estimate
+
+hist(data1, breaks = 0.9356 + (0:7) * 0.0325, freq = FALSE, ylim = c(0, 14)) #A
+lines(f1 , type = "l") # line plot of estimate
+
+hist(data1, breaks = 0.9600 + (0:7) * 0.0300, freq = FALSE, ylim = c(0, 14)) #B
+lines(f1 , type = "l") # line plot of estimate
+@
+
+
+<<fig=TRUE>>=
+# Weber (2008), Set 2:
+
+data2 <- c(2.05, 2.27, 2.50, 2.95, 3.18, 3.41, 3.64, 3.86, 4.09, 4.32,
+  5.68, 5.91, 6.14, 6.36, 6.59, 6.82, 7.05, 7.50, 7.73, 7.95)
+
+f2 <- ash1(bin1(data2, nbin = 50), 5) # compute ash estimate
+
+par(mfrow = c(2, 6))
+
+hist(data2, freq = FALSE, ylim = c(0, 0.25))
+lines(f2 , type ="l") # line plot of estimate
+
+hist(data2, breaks = 1.425 + (0:3) * 3.2075, freq = FALSE, ylim = c(0, 0.25)) #C
+lines(f2 , type = "l") # line plot of estimate
+
+hist(data2, breaks = -1.048 + (0:3) * 3.2075, freq = FALSE, ylim = c(0, 0.25)) #D
+lines(f2 , type = "l") # line plot of estimate
+
+
+hist(data2, breaks = 1.9767 + (0:4) * 1.9789, freq = FALSE, ylim = c(0, 0.25)) #E
+lines(f2 , type = "l") # line plot of estimate
+
+hist(data2, breaks = 0.1078 + (0:4) * 1.9789, freq = FALSE, ylim = c(0, 0.25)) #F
+lines(f2 , type = "l") # line plot of estimate
+
+
+hist(data2, breaks = 1.9829 + (0:5) * 1.4750, freq = FALSE, ylim = c(0, 0.25)) #G
+lines(f2 , type = "l") # line plot of estimate
+
+hist(data2, breaks = 0.6421 + (0:5) * 1.4750, freq = FALSE, ylim = c(0, 0.25)) #H
+lines(f2 , type = "l") # line plot of estimate
+
+
+hist(data2, breaks = 1.9619 + (0:4) * 1.9060, freq = FALSE, ylim = c(0, 0.25)) #I
+lines(f2 , type = "l") # line plot of estimate
+
+hist(data2, breaks = 0.8944 + (0:4) * 1.9060, freq = FALSE, ylim = c(0, 0.25)) #J
+lines(f2 , type = "l") # line plot of estimate
+
+
+hist(data2, breaks = -0.6800 + (0:4) * 2.8400, freq = FALSE, ylim = c(0, 0.25)) #K
+lines(f2 , type = "l") # line plot of estimate
+
+hist(data2, breaks = 1.9542 + (0:4) * 1.5229, freq = FALSE, ylim = c(0, 0.25)) #L
+lines(f2 , type = "l") # line plot of estimate
+
+
+hist(data2, breaks = 1.9619 + (0:7) * .9060, freq = FALSE, ylim = c(0, 0.25)) #New 1
+lines(f2 , type = "l") # line plot of estimate
+@
+
+
+\newpage
+
+
+\subsection{Stem--and--Leaf Plots}
+
+
+The R help page for stem indicates:
+\begin{quotation}
+``stem produces a stem-and-leaf plot of the values in x.''
+\end{quotation}
+
+
+\cite{VR2002}, p.~113, further specify: 
+{\it ``A stem--and--leaf plot is an enhanced histogram. The data are
+divided into bins, but the `height' is replaced by the next digits in order.''}
+
+While stem--and--leaf plots show more details than histograms, they are rarely used
+in practice, in particular not for larger data sets. However, they are a useful first step
+to the creation of histograms and therefore appear in many introductory statistics
+textbooks, e.g.,
+\cite{MMC2012}, pp.~9--12, and
+\cite{Bla1998}, pp.~46--49.
+
+
+<<>>=
+sort(plength)
+
+stem(plength)
+
+
+stem(data1)
+
+stem(data1, scale = 2)
+
+
+stem(data2)
+
+stem(data2, scale = 2)
+
+stem(data2, scale = 4)
+@
+
+
+\newpage
+
+
+\subsection{Boxplots (or Box--and--Whisker Plots)}
+
+
+The R help page for boxplot indicates:
+\begin{quotation}
+``Produce box-and-whisker plot(s) of the given (grouped) values. \\[0.2cm]
+range: this determines how far the plot whiskers extend out from the box. 
+If range is positive, the whiskersextend to the most extreme data point which 
+is no more than range times the interquartile range from the box. 
+A value of zero causes the whiskers to extend to the data extremes.''
+\end{quotation}
+
+The default for range is 1.5.
+
+
+\cite{VR2002}, p.~115, further specify: 
+{\it ``A boxplot is a way to look at the overall shape of a set of data.
+The central box shows the data between the `hinges' (roughly quartiles),
+with the median represented by a line. `Whiskers' go out to the extremes
+of the data, and very extreme points are shown by themselves.''}
+
+
+<<fig=TRUE>>=
+par(mfrow = c(2, 3))
+
+boxplot(plength)
+
+boxplot(plength, range = 0)
+
+boxplot(plength, range = 0.1)
+
+boxplot(plength ~ iris$Species)
+
+boxplot(plength ~ iris$Species, range = 0)
+
+boxplot(plength ~ iris$Species, range = 0.5)
+@
+
+
+<<fig=TRUE>>=
+par(mfrow = c(1, 2))
+
+boxplot(data1)
+
+boxplot(data2)
+@
+
+
+\newpage
+
+
+\subsection{Violin Plots}
+
+
+The R help page for vioplot indicates:
+\begin{quotation}
+``Produce violin plot(s) of the given (grouped) values. \\[0.2cm]
+A violin plot is a combination of a box plot and a kernel density plot. Specifically, 
+it starts with a box plot. It then adds a rotated kernel density plot to each side of the box plot.''
+\end{quotation}
+
+
+<<fig=TRUE>>=
+library(vioplot)
+
+par(mfrow = c(2, 3))
+
+vioplot(plength)
+
+vioplot(plength, range = 0)
+
+vioplot(plength, range = 0.1)
+
+vioplot(plength[iris$Species == "setosa"], 
+        plength[iris$Species == "versicolor"],
+        plength[iris$Species == "virginica"])
+
+vioplot(plength[iris$Species == "setosa"], 
+        plength[iris$Species == "versicolor"],
+        plength[iris$Species == "virginica"],
+        horizontal = TRUE)
+
+vioplot(plength[iris$Species == "setosa"], 
+        plength[iris$Species == "versicolor"],
+        plength[iris$Species == "virginica"],
+        horizontal = TRUE,
+        names = c("Setosa", "Versicolor", "Virginica"))
+@
+
+
+<<fig=TRUE>>=
+par(mfrow = c(1, 2))
+
+vioplot(data1)
+
+vioplot(data2)
+@
+
+
+\newpage
+
+
+\subsection{Letter Value Boxplots}
+
+
+The R help page for LVboxplot indicates:
+\begin{quotation}
+``An extension of standard boxplots which draws k letter statistics. Conventional boxplots (Tukey 1977) 
+are useful displays for conveying rough information about the central 50\% of the data and the 
+extent of the data. \\[0.2cm]
+For moderate-sized data sets (n $<$ 1000), detailed estimates of tail behavior beyond the quartiles 
+may not be trustworthy [$\ldots$]. Large data sets [$\ldots$] can be expected to present a large 
+number of `outliers' [$\ldots$].''
+\end{quotation}
+
+
+<<fig=TRUE>>=
+library(lvplot)
+
+par(mfrow = c(2, 4))
+
+boxplot(plength, horizontal = TRUE)
+
+LVboxplot(plength)
+
+LVboxplot(plength, k = 1)
+
+LVboxplot(plength, k = 2)
+
+LVboxplot(plength, k = 3)
+
+LVboxplot(plength, k = 4)
+
+LVboxplot(plength, k = 5)
+
+LVboxplot(plength, k = 6)
+@
+
+
+<<fig=TRUE>>=
+par(mfrow = c(1, 2))
+
+LVboxplot(data1)
+
+LVboxplot(data2)
+@
+
+
+Additional example for samples from an exponential distribution, based on LVboxplot help page:
+
+<<fig=TRUE>>=
+par(mfrow = c(4, 2), mar = c(2, 1, 3, 1))
+
+for (i in 1:4) {
+  x <- rexp(10^(i + 1))
+  boxplot(x, col = "grey", horizontal = TRUE,
+          ylim = c(0, 15))
+  title(paste("Exponential, n = ", length(x)))
+  LVboxplot(x, col = "grey", xlab = "",
+            xlim = c(0, 15))
+}
+@
+
+
+\newpage
+
+
+\subsection{Dot Charts for Univariate Data}\label{DotChartsUnivariateData}
+
+
+The R help page for dotchart indicates:
+\begin{quotation}
+``Draw a Cleveland dot plot.''
+\end{quotation}
+
+
+The R help page for UScereal(MASS) indicates:
+\begin{quotation}
+\noindent
+``{\bf Nutritional and Marketing Information on US Cereals:} \\[0.2cm]
+%
+The UScereal data frame has 65 rows and 11 columns. The data come 
+from the 1993 ASA Statistical Graphics Exposition, and are taken from 
+the mandatory F\&DA food label. The data have been normalized 
+here to a portion of one American cup. ''
+\end{quotation}
+
+
+<<fig=TRUE>>=
+library(MASS)  # for cereal data
+
+data(UScereal)
+head(UScereal)
+
+Kel.carbs <- UScereal[UScereal$mfr == "K", 7]
+Kel.carbs
+names(Kel.carbs) <- row.names(UScereal[UScereal$mfr == "K", ])
+Kel.carbs
+
+dotchart(Kel.carbs)
+@
+
+<<fig=TRUE>>=
+dotchart(sort(Kel.carbs))
+@
+
+<<fig=TRUE>>=
+dotchart(sort(Kel.carbs), xlim = c(10, 35), 
+  xlab = "g carbohydrates per 1 cup serving")
+@
+
+
+Now, use the lattice package to produce similar graphs:
+
+<<fig=TRUE>>=
+library(lattice)
+
+dotplot(Kel.carbs)  # from lattice library
+@
+
+<<fig=TRUE>>=
+dotplot(sort(Kel.carbs), xlim = c(9, 36), 
+  xlab = "g carbohydrates per 1 cup serving")
+@
+
+
+Finally, use ggplot2 to produce similar graphs:
+
+<<fig=TRUE>>=
+library(ggplot2)
+
+Kel.carbsdf <- data.frame(Brand = as.factor(names(Kel.carbs)), Carbs = Kel.carbs)
+Kel.carbsdf 
+
+ggplot(Kel.carbsdf, aes(x = Carbs, y = Brand)) +
+  geom_point()
+@
+
+
+<<fig=TRUE>>=
+# reorder by carbs
+Kel.carbsdf$Brand <- factor(Kel.carbsdf$Brand,
+                            levels = Kel.carbsdf$Brand[order(Kel.carbsdf$Carbs)])
+Kel.carbsdf$Brand
+
+ggplot(Kel.carbsdf, aes(x = Carbs, y = Brand)) +
+  geom_point()
+@
+
+
+The web site at \url{https://www.r-bloggers.com/revisiting-clevelands-the-elements-of-graphing-data-in-ggplot2/}
+provides some useful suggestions how to further improve the appearance of these graphs:
+
+<<fig=TRUE>>=
+# make some further adjustments to the appearance of the grid
+ggplot(Kel.carbsdf, aes(x = Carbs, y = Brand)) +
+  geom_point() +
+  theme( 
+    # remove the vertical grid lines
+    panel.grid.major.x = element_blank(),
+    panel.grid.minor.x = element_blank(),
+    # explicitly set the horizontal grid lines
+    panel.grid.major.y = element_line(linetype = 3, color = "darkgray"),
+    axis.text.y = element_text(size = rel(0.8))) +
+  xlab("Carbs (g carbohydrates per 1 cup serving)")
+
+# ineractive version
+library(plotly)
+ggplotly()
+@
+
+
+\newpage
+
+
+The R help page for barley in the lattice package indicates:
+\begin{quotation}
+\noindent
+``{\bf Yield data from a Minnesota barley trial:} \\[0.2cm]
+%
+Total yield in bushels per acre for 10 varieties at 6 sites in each of two years.''
+\end{quotation}
+
+
+<<fig=TRUE>>=
+library(lattice)  # for barley data
+
+data(barley)
+head(barley)
+
+dotplot(variety ~ yield | site, data = barley, groups = year,
+  key = simpleKey(levels(barley$year), space = "right"),
+  xlab = "Barley Yield (bushels/acre)",
+  aspect = 0.5, layout = c(1, 6), ylab = NULL)
+@
+
+<<fig=TRUE>>=
+levels(barley$site)
+
+# alphabetical sorting of sites (top to bottom)
+dotplot(variety ~ yield | site, data = barley, groups = year, 
+  key = simpleKey(levels(barley$year), space = "right"), 
+  xlab = "Barley Yield (bushels/acre)", 
+  aspect = 0.5, layout = c(1, 6), ylab = NULL,
+  index.cond = list(c(6, 3, 4, 1, 2, 5))) 
+@
+
+
+\noindent
+\underline{\bf Question:} \\
+What is the most striking (unusual) feature in these plots? 
+Look carefully!
+
+
+\newpage
+
+
+\subsection{Kernel Density Plots for Univariate Data (with Rug Plot)}
+
+
+The R help page for density indicates:
+\begin{quotation}
+\noindent
+``{\bf Kernel Density Estimation:} \\[0.2cm]
+The (S3) generic function density computes kernel density estimates. 
+Its default method does so with the given kernel and bandwidth for univariate observations. 
+[$\ldots$] \\
+bw: the smoothing bandwidth to be used. The kernels are scaled such that this is the 
+standard deviation of the smoothing kernel. (Note this differs from the reference books 
+cited below, and from S--PLUS.) \\
+bw can also be a character string giving a rule to choose the bandwidth. See bw.nrd. \\
+The specified (or computed) value of bw is multiplied by adjust.''
+\end{quotation}
+
+
+The R help page for rug indicates:
+\begin{quotation}
+``Adds a rug representation (1-d plot) of the data to the plot.''
+\end{quotation}
+
+\cite{CH93}, p.~548, further specify: {\it ``rug: [$\ldots$]
+a univariate histogram or rugplot is displayed along the base 
+of each plot, showing the occurrence of each $x$--value; ties are
+broken by jittering.''}
+
+
+<<fig=TRUE>>=
+par(mfrow = c(3, 2))
+
+plot(density(plength), xlim = c(-1, 9))                # default nrd0 bw
+rug(plength, ticksize = 0.05)
+plot(density(plength, bw = "nrd"), xlim = c(-1, 9))    # normal reference rule bw
+rug(plength, ticksize = 0.05)
+
+plot(density(plength, bw = "ucv"), xlim = c(-1, 9))    
+                                   # unbiased cross-validation rule bw
+rug(plength, ticksize = 0.05)
+
+plot(density(plength, bw = "bcv"), xlim = c(-1, 9))    
+                                   # biased cross-validation rule bw
+rug(plength, ticksize = 0.05)
+
+plot(density(plength, bw = "SJ-ste"), xlim = c(-1, 9)) 
+                                   # Sheather-Jones ("solve-the-equation") bw
+rug(plength, ticksize = 0.05)
+
+plot(density(plength, bw = "SJ-dpi"), xlim = c(-1, 9)) 
+                                   # Sheather-Jones ("direct plug-in") bw
+rug(plength, ticksize = 0.05)
+@
+
+
+<<fig=TRUE>>=
+par(mfrow = c(3, 2))
+
+plot(density(plength), xlim = c(-1, 9))
+plot(density(plength, adjust = 1/2), xlim = c(-1, 9))  #adjust default bandwidth
+plot(density(plength, adjust = 1/4), xlim = c(-1, 9))
+plot(density(plength, adjust = 1/8), xlim = c(-1, 9))
+plot(density(plength, adjust = 2), xlim = c(-1, 9))
+plot(density(plength, adjust = 4), xlim = c(-1, 9))
+@
+
+
+Now, use the lattice package and produce similar graphics:
+<<fig=TRUE>>=
+library(lattice)
+
+dp1 <- densityplot(plength)  # lattice, takes all parameters from density (above)
+dp2 <- densityplot(plength, n = 512)
+dp3 <- densityplot(plength, n = 512, bw = "SJ")
+
+# arrange the three plots vertically
+print(dp1, position = c(0, 0, 1, 0.33), more = TRUE)
+print(dp2, position = c(0, 0.33, 1, 0.66), more = TRUE)
+print(dp3, position = c(0, 0.66, 1, 0.99))
+@
+
+In {\it densityplot}, n is the ``number of points at which density is to be evaluated''
+and the default is 50.
+
+
+Now in ggplot2. The web page 
+\url{https://stackoverflow.com/questions/32468772/histogram-with-a-jittery-rug}
+provided some suggestions how to add the jittered rug.
+
+
+<<fig=TRUE>>=
+library(ggplot2)
+library(gridExtra)
+
+h1 <- ggplot(iris, aes(x = plength)) +
+  xlim(-1, 9) +
+  geom_histogram(binwidth = 0.5, center = 0.25) +
+  ggtitle("Histogram") +
+  theme(plot.title = element_text(hjust = 0.5))
+        
+h2 <- ggplot(iris, aes(x = plength)) +
+  xlim(-1, 9) +
+  geom_histogram(aes(y = ..density..), binwidth = 0.5, center = 0.25) +
+  ggtitle("Histogram (Density Scale)") +
+  theme(plot.title = element_text(hjust = 0.5))
+
+h3 <- ggplot(iris, aes(x = plength)) +
+  xlim(-1, 9) +
+  geom_histogram(aes(y = ..density..), binwidth = 0.5, center = 0.25) +
+  ggtitle("Histogram Density (Default)") +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  geom_density()
+
+h4 <- ggplot(iris, aes(x = plength)) +
+  xlim(-1, 9) +
+  geom_histogram(aes(y = ..density..), binwidth = 0.5, center = 0.25) +
+  ggtitle("Histogram Density (SJ-ste)") +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  geom_density(bw = "SJ-ste", col = "red")
+
+h5 <- ggplot(iris, aes(x = plength)) +
+  xlim(-1, 9) +
+  ylim(0, 0.6) +
+  geom_histogram(aes(y = ..density..), binwidth = 0.5, center = 0.25) +
+  ggtitle("Histogram & Density & Rug") +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  geom_density(bw = "SJ-ste", col = "red") +
+  geom_rug()
+
+h6 <- ggplot(iris, aes(x = plength)) +
+  xlim(-1, 9) +
+  ylim(0, 0.6) +
+  geom_histogram(aes(y = ..density..), binwidth = 0.5, center = 0.25) +
+  ggtitle("Histogram & Density & Rug (Final)") +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  geom_density(bw = "SJ-ste", col = "red") +
+  geom_rug(sides = "b", aes(y = 0.4), position = "jitter", col = "blue")
+
+grid.arrange(h1, h2, h3, h4, h5, h6, nrow = 2)
+@
+
+
+\newpage
+
+
+\subsection{Quantile--Quantile Plots (Q--Q Plots)}
+
+
+One of the best ways to compare the distribution of a sample $\ux$ of size $n$
+with an assumed theoretical distribution $F$ is to use a 
+Quantile--Quantile Plot (Q--Q Plot). In such a plot, we plot
+the pairs of points
+\[
+\left( F^{-1} \left( \frac{i - 0.5}{n} \right), x_{(i)} \right), 
+~~ i = 1, \ldots, n.
+\]
+
+
+\noindent
+\underline{\bf Example 1:} \\
+Convergence of a $t$ distribution with $df$ degrees of freedom
+towards a normal distribution.
+
+<<fig=TRUE>>=
+# set seed of random number generator to be able to reproduce results
+set.seed(2) 
+
+par(mfrow = c(3, 2))
+
+tdf1 <- rt(100, df = 1)
+qqnorm(tdf1)
+qqline(tdf1)
+
+tdf2 <- rt(100, df = 2)
+qqnorm(tdf2)
+qqline(tdf2)
+
+tdf5 <- rt(100, df = 5)
+qqnorm(tdf5)
+qqline(tdf5)
+
+tdf10 <- rt(100, df = 10)
+qqnorm(tdf10)
+qqline(tdf10)
+
+tdf20 <- rt(100, df = 20)
+qqnorm(tdf20)
+qqline(tdf20)
+
+tdf30 <- rt(100, df = 30)
+qqnorm(tdf30)
+qqline(tdf30)
+@
+
+
+\noindent
+\underline{\bf Note:} \\
+The closer the points from the sample fall to a straight line,
+the closer the sample distribution and the theoretical distribution
+are related. However, here, the greater spread of the extreme quantiles
+for the sample (for $df = 1, 2, 5, 10, 20$)
+is an indicator of a long--tailed distribution.
+
+
+A quick glance at Q--Q--plots via ggplot2, with additional suggestions from
+\url{http://ggplot2.tidyverse.org/reference/geom_qq.html} and
+\url{https://gist.github.com/slowkow/9041570}.
+
+<<fig=TRUE>>=
+tdf1df <- data.frame(y = tdf1)
+q1 <- ggplot(tdf1df, aes(sample = y)) +
+  stat_qq() +
+  geom_abline(intercept = 0, slope = 1, alpha = 0.5)
+
+
+tdf30df <- data.frame(y = tdf30)
+q30 <- ggplot(tdf30df, aes(sample = y)) +
+  stat_qq() +
+  geom_abline(intercept = 0, slope = 1, alpha = 0.5)
+
+grid.arrange(q1, q30, nrow = 1)
+@
+
+
+\noindent
+\underline{\bf Example 2:} \\
+Recall: What is the relationship between exponential
+distributions and Gamma distributions? Verify this graphically!
+
+<<fig=TRUE>>=
+par(mfrow = c(3, 2))
+
+set.seed(4) 
+
+exp1 <- rexp(100, rate = 1)
+plot(qgamma(ppoints(exp1), 1, 1), sort(exp1))
+abline(0, 1)
+
+exp2 <- rexp(100, rate = 2)
+plot(qgamma(ppoints(exp2), 1, 2), sort(exp2))
+abline(0, 1)
+
+exp5 <- rexp(100, rate = 5)
+plot(qgamma(ppoints(exp5), 1, 5), sort(exp5))
+abline(0, 1)
+
+exp10 <- rexp(100, rate = 10)
+plot(qgamma(ppoints(exp10), 1, 10), sort(exp10))
+abline(0, 1)
+
+# Some major misspecifications
+
+# a) Swapping shape and rate parameters
+plot(qgamma(ppoints(exp2), 2, 1), sort(exp2))
+abline(0, 1)
+
+# b) Using 1/rate instead
+plot(qgamma(ppoints(exp2), 1, 1/2), sort(exp2))
+abline(0, 1)
+@
+
+
+\underline{\bf Example 3:} \\
+Compare iris plength sample data with an underlying assumed normal distribution.
+For which of the species is the assumption of normality justified?
+
+<<fig=TRUE>>=
+par(mfrow = c(2, 2))
+
+qqnorm(plength)
+
+qqnorm(plength[1:50])
+
+qqnorm(plength[51:100])
+
+qqnorm(plength[101:150])
+@
+
+
+\newpage
+
+
+\subsection{Empirical Cumulative Distribution Functions (ECDFs)}
+
+
+Recall from Stat 6720: \\
+
+\underline{Definition 7.1.3:} \\
+Let $X_1, \ldots, X_n$ be a sample of size $n$ from a population with
+distribution $F$. The function
+\[
+\hat{F_n} (x) = \frac{1}{n} \displaystyle\sum_{i=1}^n
+  I_{(-\infty, x]} (X_i)
+\]
+is called 
+{\bf empirical cumulative distribution function} 
+({\bf empirical cdf, ECDF}).
+$\qedsymb$ \\
+
+
+\underline{Theorem 7.1.7:}
+{\bf Glivenko--Cantelli Theorem}\index{Glivenko--Cantelli Theorem} \\
+%
+$\hat{F_n} (x)$ converges uniformly to $F(x)$, i.e., it holds
+for all $\epsilon > 0$ that
+\[
+\displaystyle\lim_{n \rightarrow \infty}
+  P(\sup_{-\infty < x < \infty} \mid \hat{F_n} (x) - F(x) \mid >
+   \epsilon) = 0.
+\]
+$\qedsymb$
+
+
+Verify this theorem for samples from a normal distribution:
+
+<<fig=TRUE>>=
+par(mfrow = c(2, 2))
+
+set.seed(1234) 
+
+xvals <- seq(-4, 4, 0.01)
+
+norm10 <- rnorm(10)
+plot(ecdf(norm10), xlim = c(-4, 4))
+lines(xvals, pnorm(xvals))
+
+norm25 <- rnorm(25)
+plot(ecdf(norm25), xlim = c(-4, 4))
+lines(xvals, pnorm(xvals))
+
+norm100 <- rnorm(100)
+plot(ecdf(norm100), xlim = c(-4, 4))
+lines(xvals, pnorm(xvals))
+
+norm1000 <- rnorm(1000)
+plot(ecdf(norm1000), xlim = c(-4, 4))
+lines(xvals, pnorm(xvals))
+@
+
+
+<<fig=FALSE>>=
+# Animation
+par(mfrow = c(1, 1))
+
+xvals <- seq(-4, 4, 0.01)
+pnormxvals <- pnorm(xvals)
+normgrow <- NULL
+
+for (i in 1:150) {
+  normgrow <- c(normgrow, rnorm(1))
+  plot(ecdf(normgrow), xlim = c(-4, 4), main = length(normgrow))
+  lines(xvals, pnormxvals, col = "red")
+  Sys.sleep(0.1)
+}
+@
+
+
+\noindent
+\underline{\bf Example:} \\
+And here the ECDF for iris plength.
+
+<<fig=TRUE>>=
+plot(ecdf(plength)) 
+@
+
+
+\newpage
+
+

@@ -1,0 +1,879 @@
+% !Rnw root = lect_main.Rnw
+
+\def\jsprivatechunwinone{1} % show additional details
+%\def\jsprivatechunwinone{0} % do NOT show additional details
+
+
+
+\section{Basic Graph Construction and Refinement}
+
+{\bf (Based on \cite{Un2015}, Chapter 1: Setting the Scene}
+
+The supporting materials for \cite{Un2015} can be obtained from
+\url{http://www.gradaanwr.net/}.
+In particular, the original R code for each chapter can be downloaded
+as a zip file from
+\url{http://www.gradaanwr.net/content/}.
+We will work with modified versions of some of the provided code in class.
+
+
+\subsection{Figure 1.1}
+
+
+\begin{verbatim}
+World Speed Skiing Competition, Verbier 21st April, 2011
+
+Description
+There were separate Speed Skiing competitions for men (79 participants) and 
+women (12 participants).
+
+Usage
+data(SpeedSki)
+\end{verbatim}
+
+
+<<fig=FALSE>>=
+##Libraries
+library(ggplot2)
+library(gridExtra)
+library(ggthemes)
+library(dplyr)
+library(GGally)
+library(vcd)
+library(extracat)
+library(GDAdata)
+library(plotly)
+
+
+##Settings
+palette("default")
+
+update_geom_defaults("bar", list(fill = "grey70", colour = "grey40"))
+scale_colour_discrete <- function(...) scale_colour_brewer(..., palette = "Set2")
+scale_fill_discrete <- function(...) scale_fill_colorblind()
+auTheme <- theme_grey()  + 
+  theme(panel.background = element_rect(colour = NA, fill = "grey90")) +
+  theme(plot.background = element_rect(colour = NA, fill = "grey90")) +
+  theme(legend.background = element_rect(fill = "grey90")) +
+  theme(plot.title = element_text(vjust = 2)) 
+theme_set(auTheme)
+
+
+## ----speedski---- Fig 1.1
+data(SpeedSki, package = "GDAdata")
+
+# step-by-step
+
+# basic first graphic
+ggplot(SpeedSki, aes(x = Speed)) +
+  geom_histogram()
+
+# adjust range of x-axis
+summary(SpeedSki$Speed)
+
+ggplot(SpeedSki, aes(x = Speed)) +
+  xlim(160, 220) +
+  geom_histogram()
+
+# adjust binwidth
+ggplot(SpeedSki, aes(x = Speed)) +
+  xlim(160, 220) +
+  geom_histogram(binwidth = 2.5)
+
+# add axis labels
+ggplot(SpeedSki, aes(x = Speed)) +
+  xlim(160, 220) + 
+  geom_histogram(binwidth = 2.5) +
+  xlab("Speed (km/hr)") + 
+  ylab("")
+
+# condition on gender in 2 related histograms (small multiples!)
+ggplot(SpeedSki, aes(x = Speed)) +
+  xlim(160, 220) + 
+  geom_histogram(binwidth = 2.5) +
+  xlab("Speed (km/hr)") + 
+  ylab("") +
+  facet_wrap(~ Sex, ncol = 1)
+
+# use color as a distinction for gender
+ggplot(SpeedSki, aes(x = Speed, fill = Sex)) +
+  xlim(160, 220) + 
+  geom_histogram(binwidth = 2.5) +
+  xlab("Speed (km/hr)") + 
+  ylab("") +
+  facet_wrap(~ Sex, ncol = 1)
+
+# omit legend = code from the book
+ggplot(SpeedSki, aes(x = Speed, fill = Sex)) +
+  xlim(160, 220) + 
+  geom_histogram(binwidth = 2.5) +
+  xlab("Speed (km/hr)") + 
+  ylab("") +
+  facet_wrap(~ Sex, ncol = 1) +
+  theme(legend.position = "none")
+
+# final result in book
+ggplot(SpeedSki, aes(x = Speed, fill = Sex)) + 
+  xlim(160, 220) +
+  geom_histogram(binwidth = 2.5, center = 1.25) + 
+  xlab("Speed (km/hr)") + 
+  ylab("") +
+  facet_wrap(~ Sex, ncol = 1) + 
+  theme(legend.position = "none")
+
+# further adjust y-axis range
+ggplot(SpeedSki, aes(x = Speed, fill = Sex)) + 
+  xlim(160, 220) +
+  ylim(0, 12) +
+  geom_histogram(binwidth = 2.5, center = 1.25) + 
+  xlab("Speed (km/hr)") + 
+  ylab("") +
+  facet_wrap(~ Sex, ncol = 1) + 
+  theme(legend.position = "none")
+
+# further adjust y-axis ticks & gridlines
+ggplot(SpeedSki, aes(x = Speed, fill = Sex)) + 
+  xlim(160, 220) +
+  ylim(0, 12) +
+  scale_y_continuous(breaks = seq(0, 12, 2)) +
+  geom_histogram(binwidth = 2.5, center = 1.25) + 
+  xlab("Speed (km/hr)") + 
+  ylab("") +
+  facet_wrap(~ Sex, ncol = 1) + 
+  theme(legend.position = "none")
+
+# interactive version
+ggplotly()
+
+# save as external jpg file
+jpeg("Speedski.jpg")
+ggplot(SpeedSki, aes(x = Speed, fill = Sex)) + 
+  xlim(160, 220) +
+  ylim(0, 12) +
+  scale_y_continuous(breaks = seq(0, 12, 2)) +
+  geom_histogram(binwidth = 2.5, center = 1.25) + 
+  xlab("Speed (km/hr)") + 
+  ylab("") +
+  facet_wrap(~ Sex, ncol = 1) + 
+  theme(legend.position = "none")
+dev.off()
+
+# save as external pdf file
+pdf("Speedski.pdf")
+ggplot(SpeedSki, aes(x = Speed, fill = Sex)) + 
+  xlim(160, 220) +
+  ylim(0, 12) +
+  scale_y_continuous(breaks = seq(0, 12, 2)) +
+  geom_histogram(binwidth = 2.5, center = 1.25) + 
+  xlab("Speed (km/hr)") + 
+  ylab("") +
+  facet_wrap(~ Sex, ncol = 1) + 
+  theme(legend.position = "none")
+dev.off()
+
+
+# Question: how do we extract the intervas from a ggplot histogram object?
+# Answer:
+
+# assign ggplot object ot a variable
+g <- ggplot(SpeedSki, aes(x=Speed)) + 
+  geom_histogram()
+
+class(g)
+
+# extract plot information
+pg <- ggplot_build(g)
+class(pg)
+names(pg)
+
+# look at the data portion
+head(pg$data[[1]])
+
+# compare with modified intervals
+g2 <- ggplot(SpeedSki, aes(x = Speed, fill = Sex)) + 
+  xlim(160, 220) +
+  ylim(0, 12) +
+  scale_y_continuous(breaks = seq(0, 12, 2)) +
+  geom_histogram(binwidth = 2.5, center = 1.25) + 
+  xlab("Speed (km/hr)") + 
+  ylab("") +
+  facet_wrap(~ Sex, ncol = 1) + 
+  theme(legend.position = "none")
+g2
+
+pg2 <- ggplot_build(g2)
+
+head(pg$data[[1]])
+
+
+## BaseR
+
+# basic first graphic
+hist(SpeedSki$Speed)
+
+# adjust range of x-axis & binwidth
+hist(SpeedSki$Speed,
+     breaks = seq(160, 220, by = 2.5))
+
+# add axis labels
+hist(SpeedSki$Speed,
+     breaks = seq(160, 220, by = 2.5),
+     xlab = "Speed (km/hr)",
+     ylab = "")
+
+# condition on gender in 2 related histograms (small multiples!)
+hist(SpeedSki$Speed[SpeedSki$Sex == "Female"],
+     breaks = seq(160, 220, by = 2.5),
+     xlab = "Speed (km/hr)",
+     ylab = "")
+
+hist(SpeedSki$Speed[SpeedSki$Sex == "Male"],
+     breaks = seq(160, 220, by = 2.5),
+     xlab = "Speed (km/hr)",
+     ylab = "")
+
+# combine into 1 figure
+op <- par(no.readonly = TRUE) # save original graphical parameters
+
+par(mfrow = c(2, 1))
+hist(SpeedSki$Speed[SpeedSki$Sex == "Female"],
+     breaks = seq(160, 220, by = 2.5),
+     xlab = "Speed (km/hr)",
+     ylab = "")
+hist(SpeedSki$Speed[SpeedSki$Sex == "Male"],
+     breaks = seq(160, 220, by = 2.5),
+     xlab = "Speed (km/hr)",
+     ylab = "")
+
+# add individual main titles
+par(mfrow = c(2, 1))
+hist(SpeedSki$Speed[SpeedSki$Sex == "Female"],
+     breaks = seq(160, 220, by = 2.5),
+     xlab = "Speed (km/hr)",
+     ylab = "",
+     main = "Female")
+hist(SpeedSki$Speed[SpeedSki$Sex == "Male"],
+     breaks = seq(160, 220, by = 2.5),
+     xlab = "Speed (km/hr)",
+     ylab = "",
+     main = "Male")
+
+# adjust y-axis to common scale (small multiples!)
+par(mfrow = c(2, 1))
+hist(SpeedSki$Speed[SpeedSki$Sex == "Female"],
+     breaks = seq(160, 220, by = 2.5),
+     ylim = c(0, 12),
+     xlab = "Speed (km/hr)",
+     ylab = "",
+     main = "Female")
+hist(SpeedSki$Speed[SpeedSki$Sex == "Male"],
+     breaks = seq(160, 220, by = 2.5),
+     ylim = c(0, 12),
+     xlab = "Speed (km/hr)",
+     ylab = "",
+     main = "Male")
+
+# reduce outer margins # c(bottom, left, top, right)
+par(mfrow = c(2, 1),
+    oma = c(0, 0, 0, 0))
+hist(SpeedSki$Speed[SpeedSki$Sex == "Female"],
+     breaks = seq(160, 220, by = 2.5),
+     ylim = c(0, 12),
+     xlab = "Speed (km/hr)",
+     ylab = "",
+     main = "Female")
+hist(SpeedSki$Speed[SpeedSki$Sex == "Male"],
+     breaks = seq(160, 220, by = 2.5),
+     ylim = c(0, 12),
+     xlab = "Speed (km/hr)",
+     ylab = "",
+     main = "Male")
+
+# reduce inner margins # c(bottom, left, top, right)
+par(mfrow = c(2, 1),
+    oma = c(0, 0, 0, 0),
+    mar = c(5, 3, 1, 0))
+hist(SpeedSki$Speed[SpeedSki$Sex == "Female"],
+     breaks = seq(160, 220, by = 2.5),
+     ylim = c(0, 12),
+     xlab = "Speed (km/hr)",
+     ylab = "",
+     main = "Female")
+hist(SpeedSki$Speed[SpeedSki$Sex == "Male"],
+     breaks = seq(160, 220, by = 2.5),
+     ylim = c(0, 12),
+     xlab = "Speed (km/hr)",
+     ylab = "",
+     main = "Male")
+
+par(op) # reset par for future graphics 
+@
+
+
+\subsection{Figure 1.2}
+
+
+<<fig=FALSE>>=
+## ----speedski2---- Fig 1.2
+
+# final result in book for Fig 1.1
+ggplot(SpeedSki, aes(x = Speed, fill = Sex)) + 
+  xlim(160, 220) +
+  geom_histogram(binwidth = 2.5, center = 1.25) + 
+  xlab("Speed (km/hr)") + 
+  ylab("") +
+  facet_wrap(~ Sex, ncol = 1) + 
+  theme(legend.position = "none")
+
+# different layout
+ggplot(SpeedSki, aes(x = Speed, fill = Sex)) + 
+  xlim(160, 220) +
+  geom_histogram(binwidth = 2.5, center = 1.25) + 
+  xlab("Speed (km/hr)") + 
+  ylab("") +
+  facet_grid(~ Sex) + 
+  theme(legend.position = "none")
+
+# condition on event
+ggplot(SpeedSki, aes(Speed, fill = Sex)) +
+  geom_histogram(binwidth = 2.5)  + 
+  xlab("Speed (km/hr)") +
+  ylab("") + 
+  facet_grid(Sex ~ Event) +
+  theme(legend.position = "none")
+
+# readjust range and center of bins
+ggplot(SpeedSki, aes(Speed, fill = Sex)) +
+  xlim(160, 220) +
+  geom_histogram(binwidth = 2.5, center = 1.25)  + 
+  xlab("Speed (km/hr)") +
+  ylab("") + 
+  facet_grid(Sex ~ Event) +
+  theme(legend.position = "none")
+
+# interactive version
+ggplotly()
+
+#try a few things yourself!
+names(SpeedSki)
+head(SpeedSki)
+
+ggplot(SpeedSki, aes(Speed, fill = Sex)) +
+  xlim(160, 220) +
+  geom_histogram(binwidth = 2.5, center = 1.25)  + 
+  xlab("Speed (km/hr)") +
+  ylab("") + 
+  facet_grid(Sex ~ no.of.runs ~ Event) +
+  theme(legend.position = "none")
+
+ggplot(SpeedSki, aes(Speed, fill = Sex)) +
+  xlim(160, 220) +
+  geom_histogram(binwidth = 2.5, center = 1.25)  + 
+  xlab("Speed (km/hr)") +
+  ylab("") + 
+  facet_grid(Sex ~ Nation ~ Event) +
+  theme(legend.position = "none")
+@
+
+
+\subsection{Figure 1.3}
+
+
+\begin{verbatim}
+Edgar Anderson's Iris Data
+
+Description
+This famous (Fisher's or Anderson's) iris data set gives the measurements 
+in centimeters of the variables sepal length and width and petal length and width, 
+respectively, for 50 flowers from each of 3 species of iris. The species are 
+Iris setosa, versicolor, and virginica.
+
+Usage
+iris
+iris3
+\end{verbatim}
+
+
+<<fig=FALSE>>=
+## ----petal1---- Fig 1.3
+
+# basic first graphic = code from book
+ggplot(iris, aes(Petal.Length)) + 
+  geom_histogram()
+
+# adjust binwidth & center
+ggplot(iris, aes(Petal.Length)) + 
+  geom_histogram(binwidth = 0.5, center = 0.25)
+
+# adjust xlim & ylim 
+ggplot(iris, aes(Petal.Length)) + 
+  xlim(0, 8) +
+  ylim(0, 40) +
+  geom_histogram(binwidth = 0.5, center = 0.25)
+
+# interesting: notice the following
+summary(iris$Petal.Length)
+
+# interactive version
+ggplotly()
+
+## BaseR
+
+# basic first graphic
+hist(iris$Petal.Length)
+
+# add axis label & title
+hist(iris$Petal.Length,
+     xlab = "Petal Length",
+     main = "Iris Data Set")
+
+# adjust y-axis range
+hist(iris$Petal.Length,
+     ylim = c(0, 40),
+     xlab = "Petal Length",
+     main = "Iris Data Set")
+
+# adjust starting interval for x-axis
+hist(iris$Petal.Length,
+     breaks = seq(0, 7, by = 0.5),
+     ylim = c(0, 40),
+     xlab = "Petal Length",
+     main = "Iris Data Set")
+@
+
+
+\subsection{Figure 1.4}
+
+
+<<fig=FALSE>>=
+## ----scpetal---- Fig 1.4
+
+# basic first graphic
+ggplot(iris, aes(Petal.Length, Petal.Width)) +
+  geom_point() 
+
+# add color to distinguish species
+ggplot(iris, aes(Petal.Length, Petal.Width, color = Species)) +
+  geom_point() 
+
+# place legend at bottom
+ggplot(iris, aes(Petal.Length, Petal.Width, color = Species)) +
+  geom_point() + 
+  theme(legend.position = "bottom")
+
+# choose a different color scheme for colorblind viewers = code from book
+ggplot(iris, aes(Petal.Length, Petal.Width, color = Species)) +
+  geom_point() + 
+  theme(legend.position = "bottom") +
+  scale_colour_colorblind()
+
+# interactive version
+ggplotly()
+
+# try a few things
+ggplot(iris, aes(Petal.Length, Petal.Width, shape = Species)) +
+  geom_point() + 
+  theme(legend.position = "bottom")
+
+ggplot(iris, aes(Petal.Length, Petal.Width, shape = Species, color = Species)) +
+  geom_point() + 
+  theme(legend.position = "bottom")
+
+ggplot(iris, aes(Petal.Length, Petal.Width, shape = Species, color = Species, size = Sepal.Width)) +
+  geom_point() + 
+  theme(legend.position = "bottom")
+
+## BaseR
+
+# basic plot
+plot(iris$Petal.Length, iris$Petal.Width)
+
+# add color to distinguish species
+plot(iris$Petal.Length, iris$Petal.Width,
+     col = iris$Species)
+
+# add axis labels & title
+plot(iris$Petal.Length, iris$Petal.Width,
+     col = iris$Species,
+     xlab = "Petal Length",
+     ylab = "Petal Width",
+     main = "Iris Data")
+@
+
+
+\subsection{Figure 1.5}
+
+
+\begin{verbatim}
+Student Admissions at UC Berkeley
+
+Description
+Aggregate data on applicants to graduate school at Berkeley for the six largest 
+departments in 1973 classified by admission and sex.
+
+Usage
+UCBAdmissions
+\end{verbatim}
+
+
+<<fig=FALSE>>=
+## ----ucbaDeptx---- Fig 1.5
+
+# basic first graphics
+ucba <- as.data.frame(UCBAdmissions)
+a <- ggplot(ucba, aes(Dept)) + 
+  geom_bar(aes(weight = Freq))
+b <- ggplot(ucba, aes(Gender)) + 
+  geom_bar(aes(weight = Freq))
+c <- ggplot(ucba, aes(Admit)) + 
+  geom_bar(aes(weight = Freq))
+a
+b
+c
+
+# arrange layout
+ucba <- as.data.frame(UCBAdmissions)
+a <- ggplot(ucba, aes(Dept)) + 
+  geom_bar(aes(weight = Freq))
+b <- ggplot(ucba, aes(Gender)) + 
+  geom_bar(aes(weight = Freq))
+c <- ggplot(ucba, aes(Admit)) + 
+  geom_bar(aes(weight = Freq))
+grid.arrange(a, b, c)
+
+# refine layout
+ucba <- as.data.frame(UCBAdmissions)
+a <- ggplot(ucba, aes(Dept)) + 
+  geom_bar(aes(weight = Freq))
+b <- ggplot(ucba, aes(Gender)) + 
+  geom_bar(aes(weight = Freq))
+c <- ggplot(ucba, aes(Admit)) + 
+  geom_bar(aes(weight = Freq))
+grid.arrange(a, b, c, nrow = 1)
+
+# adjust widths = code from book
+ucba <- as.data.frame(UCBAdmissions)
+a <- ggplot(ucba, aes(Dept)) + 
+  geom_bar(aes(weight = Freq))
+b <- ggplot(ucba, aes(Gender)) + 
+  geom_bar(aes(weight = Freq))
+c <- ggplot(ucba, aes(Admit)) + 
+  geom_bar(aes(weight = Freq))
+grid.arrange(a, b, c, nrow = 1, widths = c(7, 3, 3))
+@
+
+
+\subsection{Figure 1.6}
+
+
+<<fig=FALSE>>=
+## ----berkeleyS---- Fig 1.6
+
+# basic first graphic
+ucb <- data.frame(UCBAdmissions)
+doubledecker(xtabs(Freq ~ Dept + Gender + Admit, data = ucb))
+
+# modify colors
+ucb <- data.frame(UCBAdmissions)
+doubledecker(xtabs(Freq ~ Dept + Gender + Admit, data = ucb),
+             gp = gpar(fill = c("grey90", "steelblue")))
+
+# create new factor with differently sorted levels and swap top/bottom in bars
+ucb <- data.frame(UCBAdmissions)
+ucb <- within(ucb, Accept <- 
+                factor(Admit, levels = c("Rejected", "Admitted")))
+doubledecker(xtabs(Freq ~ Dept + Gender + Accept, data = ucb),
+             gp = gpar(fill = c("grey90", "steelblue")))
+@
+
+
+\subsection{Figure 1.7}
+
+
+\begin{verbatim}
+Diabetes in Pima Indian Women
+
+Description
+A population of women who were at least 21 years old, of Pima Indian heritage 
+and living near Phoenix, Arizona, was tested for diabetes according to 
+World Health Organization criteria. The data were collected by the 
+US National Institute of Diabetes and Digestive and Kidney Diseases. 
+We used the 532 complete records after dropping the (mainly missing) data on 
+serum insulin.
+
+Usage
+Pima.tr
+Pima.tr2
+Pima.te
+\end{verbatim}
+
+
+<<fig=FALSE>>=
+## ----pimaHist---- Fig 1.7
+
+# basic first graphics
+data(Pima.tr2, package = "MASS")
+h1 <- ggplot(Pima.tr2, aes(glu)) + 
+  geom_histogram()
+h2 <- ggplot(Pima.tr2, aes(bp)) + 
+  geom_histogram()
+h3 <- ggplot(Pima.tr2, aes(skin)) + 
+  geom_histogram()
+h4 <- ggplot(Pima.tr2, aes(bmi)) + 
+  geom_histogram()
+h5 <- ggplot(Pima.tr2, aes(ped)) + 
+  geom_histogram()
+h6 <- ggplot(Pima.tr2, aes(age)) + 
+  geom_histogram()
+h1
+h2 
+h3
+h4
+h5
+h6
+
+# arrange layout
+data(Pima.tr2, package = "MASS")
+h1 <- ggplot(Pima.tr2, aes(glu)) + 
+  geom_histogram()
+h2 <- ggplot(Pima.tr2, aes(bp)) + 
+  geom_histogram()
+h3 <- ggplot(Pima.tr2, aes(skin)) + 
+  geom_histogram()
+h4 <- ggplot(Pima.tr2, aes(bmi)) + 
+  geom_histogram()
+h5 <- ggplot(Pima.tr2, aes(ped)) + 
+  geom_histogram()
+h6 <- ggplot(Pima.tr2, aes(age)) + 
+  geom_histogram()
+grid.arrange(h1, h2, h3, h4, h5, h6)
+
+# refine layout = code from book
+data(Pima.tr2, package = "MASS")
+h1 <- ggplot(Pima.tr2, aes(glu)) + 
+  geom_histogram()
+h2 <- ggplot(Pima.tr2, aes(bp)) + 
+  geom_histogram()
+h3 <- ggplot(Pima.tr2, aes(skin)) + 
+  geom_histogram()
+h4 <- ggplot(Pima.tr2, aes(bmi)) + 
+  geom_histogram()
+h5 <- ggplot(Pima.tr2, aes(ped)) + 
+  geom_histogram()
+h6 <- ggplot(Pima.tr2, aes(age)) + 
+  geom_histogram()
+grid.arrange(h1, h2, h3, h4, h5, h6, nrow = 2)
+@
+
+
+\subsection{Figure 1.8}
+
+
+<<fig=FALSE>>=
+## ----pimaBoxs---- Fig 1.8
+
+## BaseR
+
+# basic first graphic
+PimaV <- select(Pima.tr2, glu:age)
+boxplot(PimaV)
+
+# use standardized scale
+PimaV <- select(Pima.tr2, glu:age)
+boxplot(scale(PimaV))
+
+# change symbol and color for outliers
+PimaV <- select(Pima.tr2, glu:age)
+boxplot(scale(PimaV), pch = 16, outcol = "red")
+
+# reduce margins = code from book
+PimaV <- select(Pima.tr2, glu:age)
+par(mar = c(3.1, 4.1, 1.1, 2.1))
+boxplot(scale(PimaV), pch = 16, outcol = "red")
+
+## ggplot2
+
+# basic boxplot of glu (needs "var" as a dummy argument)
+PimaV <- select(Pima.tr2, glu:age)
+ggplot(PimaV, aes("var", glu)) +
+  geom_boxplot()
+
+# boxplot of glu with x-axis labels removed
+PimaV <- select(Pima.tr2, glu:age)
+ggplot(PimaV, aes("var", glu)) +
+  xlab("") +
+  scale_x_discrete(breaks = NULL) +
+  geom_boxplot()
+
+# all boxplots, arranged side-by-side
+PimaV <- select(Pima.tr2, glu:age)
+b1 <- ggplot(PimaV, aes("var", glu)) +
+  xlab("") +
+  scale_x_discrete(breaks = NULL) +
+  geom_boxplot()
+b2 <- ggplot(PimaV, aes("var", bp)) +
+  xlab("") +
+  scale_x_discrete(breaks = NULL) +
+  geom_boxplot()
+b3 <- ggplot(PimaV, aes("var", skin)) +
+  xlab("") +
+  scale_x_discrete(breaks = NULL) +
+  geom_boxplot()
+b4 <- ggplot(PimaV, aes("var", bmi)) +
+  xlab("") +
+  scale_x_discrete(breaks = NULL) +
+  geom_boxplot()
+b5 <- ggplot(PimaV, aes("var", ped)) +
+  xlab("") +
+  scale_x_discrete(breaks = NULL) +
+  geom_boxplot()
+b6 <- ggplot(PimaV, aes("var", age)) +
+  xlab("") +
+  scale_x_discrete(breaks = NULL) +
+  geom_boxplot()
+grid.arrange(b1, b2, b3, b4, b5, b6, ncol = 6)
+
+# use standardized scale
+PimaV <- select(Pima.tr2, glu:age)
+PimaV <- as.data.frame(scale(PimaV))
+b1 <- ggplot(PimaV, aes("var", glu)) +
+  xlab("") +
+  scale_x_discrete(breaks = NULL) +
+  geom_boxplot()
+b2 <- ggplot(PimaV, aes("var", bp)) +
+  xlab("") +
+  scale_x_discrete(breaks = NULL) +
+  geom_boxplot()
+b3 <- ggplot(PimaV, aes("var", skin)) +
+  xlab("") +
+  scale_x_discrete(breaks = NULL) +
+  geom_boxplot()
+b4 <- ggplot(PimaV, aes("var", bmi)) +
+  xlab("") +
+  scale_x_discrete(breaks = NULL) +
+  geom_boxplot()
+b5 <- ggplot(PimaV, aes("var", ped)) +
+  xlab("") +
+  scale_x_discrete(breaks = NULL) +
+  geom_boxplot()
+b6 <- ggplot(PimaV, aes("var", age)) +
+  xlab("") +
+  scale_x_discrete(breaks = NULL) +
+  geom_boxplot()
+grid.arrange(b1, b2, b3, b4, b5, b6, ncol = 6)
+
+# enforce y-range from -5 to 7.5
+PimaV <- select(Pima.tr2, glu:age)
+PimaV <- as.data.frame(scale(PimaV))
+b1 <- ggplot(PimaV, aes("var", glu)) +
+  xlab("") +
+  scale_x_discrete(breaks = NULL) +
+  ylim(-5, 7.5) +
+  geom_boxplot()
+b2 <- ggplot(PimaV, aes("var", bp)) +
+  xlab("") +
+  scale_x_discrete(breaks = NULL) +
+  ylim(-5, 7.5) +
+  geom_boxplot()
+b3 <- ggplot(PimaV, aes("var", skin)) +
+  xlab("") +
+  scale_x_discrete(breaks = NULL) +
+  ylim(-5, 7.5) +
+  geom_boxplot()
+b4 <- ggplot(PimaV, aes("var", bmi)) +
+  xlab("") +
+  scale_x_discrete(breaks = NULL) +
+  ylim(-5, 7.5) +
+  geom_boxplot()
+b5 <- ggplot(PimaV, aes("var", ped)) +
+  xlab("") +
+  scale_x_discrete(breaks = NULL) +
+  ylim(-5, 7.5) +
+  geom_boxplot()
+b6 <- ggplot(PimaV, aes("var", age)) +
+  xlab("") +
+  scale_x_discrete(breaks = NULL) +
+  ylim(-5, 7.5) +
+  geom_boxplot()
+grid.arrange(b1, b2, b3, b4, b5, b6, ncol = 6)
+
+## ggplot2
+
+# alternatively: reshape the data first
+PimaV <- select(Pima.tr2, glu:age)
+PimaV <- as.data.frame(scale(PimaV))
+PimaV <- reshape(PimaV, idvar = "number", 
+                 times = names(PimaV), 
+                 timevar = "variable", 
+                 varying = list(names(PimaV)), 
+                 direction = "long")
+ggplot(PimaV, aes(variable, glu)) +
+  geom_boxplot()
+
+# rearrange order of factor levels
+PimaV <- select(Pima.tr2, glu:age)
+PimaV <- as.data.frame(scale(PimaV))
+PimaV <- reshape(PimaV, idvar = "number", 
+                 ids = row.names(PimaV),
+                 times = names(PimaV), 
+                 timevar = "variable", 
+                 varying = list(names(PimaV)), 
+                 v.names = "data",
+                 direction = "long")
+PimaV$variable <- as.factor(PimaV$variable)
+PimaV <- within(PimaV, newvariable <-
+                factor(variable, levels = c("glu", "bp", "skin", "bmi", "ped", "age")))
+ggplot(PimaV, aes(newvariable, data)) +
+  geom_boxplot()
+
+# remove axis labels
+PimaV <- select(Pima.tr2, glu:age)
+PimaV <- as.data.frame(scale(PimaV))
+PimaV <- reshape(PimaV, idvar = "number", 
+                 ids = row.names(PimaV),
+                 times = names(PimaV), 
+                 timevar = "variable", 
+                 varying = list(names(PimaV)), 
+                 v.names = "data",
+                 direction = "long")
+PimaV$variable <- as.factor(PimaV$variable)
+PimaV <- within(PimaV, newvariable <-
+                factor(variable, levels = c("glu", "bp", "skin", "bmi", "ped", "age")))
+ggplot(PimaV, aes(newvariable, data)) +
+  xlab("") +
+  ylab("") +
+  geom_boxplot()
+
+# interactive version
+ggplotly()
+@
+
+
+\subsection{Figure 1.9}
+
+
+<<fig=FALSE>>=
+## ----pimaSpl---- Fig 1.9
+
+# basic graphic
+PimaV <- select(Pima.tr2, glu:age)
+ggpairs(PimaV)
+
+# no visible changes, so these are the defaults
+PimaV <- select(Pima.tr2, glu:age)
+ggpairs(PimaV, diag = list(continuous = "density"),
+        axisLabels = "show")
+
+# interactive version
+ggplotly()
+
+## BaseR
+
+# basic scatterplot matrix
+pairs(PimaV)
+@
+
+
+\newpage
+
+

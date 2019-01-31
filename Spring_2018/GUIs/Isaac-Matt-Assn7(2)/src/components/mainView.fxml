@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.BorderPane?>
+
+<BorderPane fx:id="borderPane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/9.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controller.MainViewController">
+   <top>
+      <fx:include fx:id="menuBar" source="menuBar.fxml" />
+   </top>
+
+   <center>
+        <fx:include fx:id="gameBoard" source="gameBoard.fxml" />
+   </center>
+
+   <bottom>
+      <fx:include fx:id="controlsBar" source="controlsBar.fxml" BorderPane.alignment="CENTER" />
+   </bottom>
+</BorderPane>

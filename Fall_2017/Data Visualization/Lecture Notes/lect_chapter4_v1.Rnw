@@ -1,0 +1,971 @@
+% !Rnw root = lect_main.Rnw
+
+%\def\jsprivatechfour{1} % show additional details
+\def\jsprivatechfour{0} % do NOT show additional details
+
+
+\section{Categorical Plots}
+
+%{\bf (Based on \cite{Wa97}, Chapter 1 \& \cite{Tu83}, Chapter 2)}
+
+
+\subsection{Which Plot Type to Choose?}\label{WhichPlotTypeToChoose}
+
+
+Often, there exist many valid options how to display (categorical) data.
+
+\cite{Ze2001}, p.~12, suggests the following project:
+\begin{quotation}
+``Sketch as many charts as you can think of using these data:
+the more the better.''
+\end{quotation}
+
+\begin{center}
+{\bf Percentage of January Sales by Region} \\[0.2cm]
+\begin{tabular}{lcc}
+ & ~~\underline{Co. A}~~ & ~~\underline{Co. B}~~ \\
+North & 13\% & 39\% \\
+South & 35\% &  6\% \\
+East  & 27\% & 27\% \\
+West  & 25\% & 28\% \\
+\end{tabular}
+\end{center}
+
+
+
+\newpage
+
+
+\centerline{\Large \bf Worksheet}~\\
+
+\centerline{\hfill {\large \bf Your Name:} \underline{\hspace*{5cm}}}
+
+~\\[1cm]
+
+\fbox{\rule[-0.2in]{0in}{2in}\hspace*{3in}} ~~ \fbox{\rule[-0.2in]{0in}{2in}\hspace*{3in}} \\
+
+\fbox{\rule[-0.2in]{0in}{2in}\hspace*{3in}} ~~ \fbox{\rule[-0.2in]{0in}{2in}\hspace*{3in}} \\
+
+\fbox{\rule[-0.2in]{0in}{2in}\hspace*{3in}} ~~ \fbox{\rule[-0.2in]{0in}{2in}\hspace*{3in}} \\
+
+%\framebox[3in]{\vspace*{2in}} ~~ \framebox[3in]{\vspace*{2in}} \\
+
+%\framebox[3in]{\vspace*{2in}} ~~ \framebox[3in]{\vspace*{2in}} \\
+
+%\framebox[3in]{\vspace*{2in}} ~~ \framebox[3in]{\vspace*{2in}} \\
+
+
+\newpage
+
+
+\if\jsprivatechfour 1
+
+\centerline{\Large \bf Worksheet Answers}~\\
+
+\begin{figure}[ht]
+\centering{\includegraphics[width=5.0in]{Scans//Zelazny_p14_Fig.jpg}}
+\caption{\label{Zelazny_p14_Fig}
+\cite{Ze2001}, p.~14, Figure.
+}
+\end{figure}
+
+
+\newpage
+
+
+\begin{figure}[ht]
+\centering{\includegraphics[width=4.0in]{Scans//Zelazny_p15_Text.jpg}}
+\caption{\label{Zelazny_p15_Text}
+\cite{Ze2001}, p.~15, Text.
+}
+\end{figure}
+
+
+\else
+{\bf Additional details will be provided after class.}
+\fi
+
+
+\newpage
+
+
+\subsection{Categorical Plots in R}
+
+
+Recall Section 2.4, {\it ``Sex Bias in Graduate Admissions''},
+from \cite{FPP2007}, pp.~17--20, many of us are using in our introductory
+Stat 1040 class.
+
+These data represent
+aggregate data on applicants to graduate school at Berkeley for the six largest 
+departments in 1973, classified by admission and sex. 
+These data are often used to discuss the issue whether the data show evidence of sex bias 
+in admission practices. There were 2691 male applicants, of whom 1198 (44.5\%) 
+were admitted, compared with 1835 female applicants of whom 557 (30.4\%) were admitted. 
+Ultimately, this data set is frequently used for illustrating Simpson's paradox and does
+not show any sex bias when properly analyzed. 
+An effective graphical way to explain Simpson's Paradox is the BK--Plot,
+summarized in \cite{Wa2002}.
+
+In R, the data are stored in a a 3--dimensional array 
+resulting from cross--tabulating 4526 observations on 3 variables. 
+The variables and their levels are as follows: \\
+\begin{center}
+\begin{tabular}{l|l|l}
+~~No~~ & ~~Name~~ & ~~Levels~~ \\
+\hline   
+1 & Admit & Admitted, Rejected \\
+2 & Gender & Male, Female \\
+3 & Dept & A, B, C, D, E, F \\
+\end{tabular}
+\end{center} ~\\
+
+
+In R, this data set is accessible via:
+<<>>=
+UCBAdmissions
+@
+
+A better tabular representation can be obtained via:
+<<>>=
+ftable(UCBAdmissions)
+@
+
+To obtain the totals as represented in \cite{FPP2007}, p.~18,
+we have to sum over dimensions 2 and 3 in this 3--dimensional array:
+<<>>=
+apply(UCBAdmissions, c(2, 3), sum)
+#
+# also, margin.table prodoces the same result
+#
+margin.table(UCBAdmissions, 2:3)
+@
+
+To better understand over which dimensions we sum,
+replace the \verb|c(2, 3)| option with possible
+other indices, e.g., \verb|1| or \verb|c(1, 2)|.
+Try a few more. \\
+ 
+
+
+\underline{Question:} \\
+How can we calculate in R the percent admitted, as shown in 
+\cite{FPP2007}, p.~18, Table~2? This can be done via
+a single command line and does not require any loop!
+And, which single digit do we have to change in our
+previous R command to obtain the percent rejected?
+
+\begin{figure}[h]
+\centering{\includegraphics[width=4.0in]{Scans//FPP_p18_Table2.jpg}}
+\caption{\label{FPP_p18_Table2}
+\cite{FPP2007}, p.~18, Table~2.
+}
+\end{figure}
+
+
+\underline{Answer:} \\
+\if\jsprivatechfour 1
+<<>>=
+# Percent admitted
+UCBAdmissions[1, , ] / apply(UCBAdmissions, c(2, 3), sum) * 100
+# Percent rejected
+UCBAdmissions[2, , ] / apply(UCBAdmissions, c(2, 3), sum) * 100
+@
+\else
+{\bf Additional details will be provided after class.}
+\fi
+
+
+\newpage
+
+
+
+\subsubsection{Pie Charts}
+
+
+Let us concentrate on the popularity of the six majors first,
+i.e., the total number of admissions for each of these majors.
+
+In R, these application numbers can be calculated via:
+<<>>=
+apply(UCBAdmissions, 3, sum)
+@
+
+Many people would immediately think of a pie chart as a possible 
+graphical representation:
+<<fig=TRUE>>=
+pie(apply(UCBAdmissions, 3, sum))
+@
+
+Note that there is no sorting here. Can you easily order the slices
+by visual inspection,
+i.e., which major has the largest number/percentage of admissions,
+which is second, third, etc.?
+
+A better representation
+is to sort the data from largest to smallest and then plot
+the slices in clockwise direction, starting with the
+largest slice at 90$^\circ$.
+
+<<fig=TRUE>>=
+pie(sort(apply(UCBAdmissions, 3, sum), decreasing = TRUE), 
+    clockwise = TRUE,
+    main = "UC Berkley Admissions by Major")
+@
+
+This is somewhat better, but still not perfect. The R help page for pie charts
+indicates:
+\begin{quotation}
+``Pie charts are a very bad way of displaying information. The eye is good 
+at judging linear measures and bad at judging relative areas. A bar chart or 
+dot chart is a preferable way of displaying this type of data.''
+\end{quotation}
+
+Moreover, \cite{Cle85}, p.~264, states: 
+\begin{quotation}
+``Data that can be shown by pie charts always can be shown by a dot chart. 
+This means that judgements of position along a common scale can 
+be made instead of the less accurate angle judgements.''
+\end{quotation}
+
+
+{\it ggplot2} allows to draw pie charts, but it is not very supportive.
+The help  page for \verb|coord_polar| states:
+\begin{quotation}
+NOTE: Use these plots with caution - polar coordinates has
+major perceptual problems.  The main point of these examples is
+to demonstrate how these common plots can be described in the
+grammar.  Use with EXTREME caution.
+\end{quotation}
+
+
+<<fig=TRUE>>=
+library(ggplot2)
+
+UCBtable <- apply(UCBAdmissions, 3, sum)
+
+UCBdf <- data.frame(Department = as.factor(names(UCBtable)),
+                    Applicants = UCBtable)
+UCBdf
+
+# stacked bar chart
+bp <- ggplot(UCBdf, aes(x = "", y = Applicants, fill = Department)) + 
+  geom_bar(width = 1, stat = "identity")
+bp
+@
+
+<<fig=TRUE>>=
+# pie chart
+pie <- bp + coord_polar(theta = "y")
+pie
+@
+
+<<fig=TRUE>>=
+# modified pie chart
+pie <- ggplot(UCBdf, aes(x = "", y = Applicants, fill = Department)) + 
+  geom_bar(width = 1, stat = "identity") + 
+  coord_polar(theta = "y", start = 0, direction = -1) +
+  theme_void() +
+  ggtitle("UC Berkley Admissions by Major") +
+  theme(plot.title = element_text(hjust = 0.5, vjust = -10))
+pie
+@
+
+<<fig=TRUE>>=
+# modified pie chart, sorted from largest to smallest segment
+UCBdfsort <- UCBdf
+UCBdfsort$Department
+
+UCBdfsort$Department <- factor(UCBdfsort$Department, 
+                               levels = UCBdfsort$Department[order(-UCBdfsort$Applicants)])
+UCBdfsort
+UCBdfsort$Department
+
+pie <- ggplot(UCBdfsort, aes(x = "", y = Applicants, fill = Department)) + 
+  geom_bar(width = 1, stat = "identity") + 
+  coord_polar(theta = "y", start = 0, direction = -1) +
+  theme_void() +
+  ggtitle("UC Berkley Admissions by Major") +
+  theme(plot.title = element_text(hjust = 0.5, vjust = -10))
+pie
+@
+
+If you further want to adjust your pie chart via {\it ggplot2}, see the
+\url{http://www.dxbydt.com/bars-pies-using-ggplot2/} 
+web page for additional suggestions.
+
+
+\newpage
+
+
+And what about the extremely popular 3D--pie charts that often can be
+found in business reports and the media? The answer is 
+a clear {\bf Don't.}
+
+\cite{WWPJH96}, p.~70, provide a striking example why not to
+use 3D--pie charts. Guess the percentages associated
+with the four different areas:
+
+\begin{figure}[h]
+\centering{\includegraphics[width=4.0in]{Scans//Wallgren_p70_FigG.jpg}}
+\caption{\label{Wallgren_p70_FigG}
+\cite{WWPJH96}, p.~70, Figure~G.
+}
+\end{figure}
+
+And here is the answer:
+
+\if\jsprivatechfour 1
+
+\begin{figure}[h]
+\centering{\includegraphics[width=4.0in]{Scans//Wallgren_p70_FigF.jpg}}
+\caption{\label{Wallgren_p70_FigF}
+\cite{WWPJH96}, p.~70, Figure~F.
+}
+\end{figure}
+
+\else
+{\bf Additional details will be provided after class.}
+\fi
+
+
+\newpage
+
+
+\subsubsection{Bar Charts}
+
+
+The R help page for barplot indicates:
+\begin{quotation}
+``Creates a bar plot with vertical or horizontal bars.''
+\end{quotation}
+
+
+<<fig=TRUE>>=
+UCBAd <- margin.table(UCBAdmissions, 1:2)
+UCBAd
+
+barplot(UCBAd, legend.text = TRUE)
+@
+
+<<fig=TRUE>>=
+barplot(UCBAd, legend.text = TRUE, beside = TRUE)
+@
+
+The following commands create (divided) bar charts that show
+the percentage admitted/rejected for each gender.
+
+<<fig=TRUE>>=
+barplot(UCBAd / rbind(margin.table(UCBAd, 2), margin.table(UCBAd, 2)), 
+  legend.text = TRUE)
+
+# This typically only works for two categories. 
+@
+
+<<fig=TRUE>>=
+barplot(UCBAd / rbind(margin.table(UCBAd, 2), margin.table(UCBAd, 2)), 
+  legend.text = TRUE, beside = TRUE)
+@
+
+
+Let's try a few more bar charts with ggplot2. Thanks to Johnny Hong for 
+posting these examples at \url{http://jcyhong.github.io/ggplot_demo.html}:
+
+<<fig=TRUE>>=
+library(ggplot2)
+library(plyr)
+library(gridExtra)
+library(grid)
+
+UCBdt <- as.data.frame(UCBAdmissions)
+
+overall <- ddply(UCBdt, .(Gender), function(gender) {
+  temp <- c(sum(gender[gender$Admit == "Admitted", "Freq"]), 
+            sum(gender[gender$Admit == "Rejected", "Freq"])) / sum(gender$Freq)
+  names(temp) <- c("Admitted", "Rejected")
+  temp
+})
+overall
+
+departmentwise <- ddply(UCBdt, .(Gender, Dept), function(gender) {
+  temp <- gender$Freq / sum(gender$Freq)
+  names(temp) <- c("Admitted", "Rejected")
+  temp
+})
+departmentwise
+
+# A barplot for overall admission percentage for each gender.
+p1 <- ggplot(data = overall, aes(x = Gender, y = Admitted, width = 0.2))
+p1 <- p1 + geom_bar(stat = "identity") + 
+  ggtitle("Overall admission percentage") + ylim(0, .5) 
+p1
+@
+
+<<fig=TRUE>>=
+# A 1x6 panel of barplots, each of which represents the 
+# number of admitted students for a department
+p2 <- ggplot(data = UCBdt[UCBdt$Admit == "Admitted", ], aes(x = Gender, y = Freq))
+p2 <- p2 + geom_bar(stat = "identity") + 
+  facet_grid(. ~ Dept) +
+  ggtitle("Number of admitted students\nfor each department") + 
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) 
+p2
+@
+
+<<fig=TRUE>>=
+# A 1x6 panel of barplots, each of which represents the 
+# admission percentage for a department
+p3 <- ggplot(data = departmentwise, aes(x = Gender, y = Admitted))
+p3 <- p3 + geom_bar(stat = "identity") + 
+  facet_grid(. ~ Dept) + 
+  ylim(0, 1) +
+  ggtitle("Admission percentage\nfor each department") + 
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+p3
+@
+
+<<fig=TRUE>>=
+# A 1x6 panel of barplots, each of which represents the 
+# number of applicants for a department
+p4 <- ggplot(data = UCBdt, aes(x = Gender, y = Freq))
+p4 <- p4 + geom_bar(stat = "identity") + 
+  facet_grid(. ~ Dept) + 
+  ggtitle("Number of Applicants\nfor each department") + 
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+p4
+@
+
+<<fig=TRUE>>=
+# Arrange the four plots on a page
+grid.arrange(p1, p2, p3, p4, nrow = 2, 
+             top = textGrob("Simpson's Paradox: UC Berkeley 1973 Admissions", 
+                            gp = gpar(fontsize = 15)))
+@
+
+
+Blogger ``wszafranski'' provided further suggestions how to modify bar charts in ggplot2
+at \url{https://www.r-bloggers.com/make-a-bar-plot-with-ggplot/}.
+Let's apply some of these to the previously created bar charts and compare them side-by-side.
+
+<<fig=TRUE>>=
+# A 1x6 panel of barplots, each of which represents the 
+# number of applicants for a department;
+# moreover, make a distinction between Admitted & Rejected
+p5 <- ggplot(data = UCBdt, aes(x = Gender, y = Freq))
+p5 <- p5 + geom_bar(stat = "identity", aes(fill = Admit)) + 
+  facet_grid(. ~ Dept) + 
+  ggtitle("Number of Applicants\nfor each department") + 
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+p5
+@
+
+<<fig=TRUE>>=
+# A 1x6 panel of barplots, each of which represents the 
+# number of applicants for a department;
+# moreover, make a distinction between Admitted & Rejected 
+# and place these bars side-by-side
+p6 <- ggplot(data = UCBdt, aes(x = Gender, y = Freq))
+p6 <- p6 + geom_bar(stat = "identity", aes(fill = Admit), position = "dodge") + 
+  facet_grid(. ~ Dept) + 
+  ggtitle("Number of Applicants\nfor each department") + 
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+p6
+@
+
+<<fig=TRUE>>=
+# Arrange the three plots on a page
+grid.arrange(p4, p5, p6, nrow = 2, 
+             top = textGrob("Focus on Admit: UC Berkeley 1973 Admissions", 
+                            gp = gpar(fontsize = 15)))
+@
+
+
+\fbox{\parbox{\textwidth}{
+\underline{\bf Warning:} \\
+\cite{Cle94}, Section~4.10, ``Pop Charts'', p.~262,
+strongly advises against the use of pie charts, divided bar charts, and area charts:
+%
+\begin{quotation}
+Three graphical methods --- pie charts, divided bar charts, and area charts ---
+are widely used in mass media and business publications but are used far less
+in science and technology. Because of their use, we will call these
+graphical methods {\it pop charts}.
+
+Any data that can be encoded by one of these pop charts can also be
+encoded by either a dot plot or a multiway dot plot that typically
+provides far more efficient pattern perception and
+table look--up than the pop--chart encoding. Interestingly, the
+better pattern perception results from a detection operation,
+a phenomenon that has been missed in previous studies of pop charts.
+\end{quotation}
+}}
+
+
+\newpage
+
+Finally, what about 3D bar charts?
+\cite{SRH2016ASA} discussed problems with 3D bar charts in detail.
+They stated: 
+\begin{quotation}
+``There are
+several reasons that we object to these 3D charts. Our main objection is that most people
+are misled by them. They don't know where the value is encoded. In Figure 11 (left), is the
+value at the front of the bar as indicated by the arrow on the A bar or is it in the back of the
+bar as indicated by the arrow on the B bar? Most readers judge the A bar to be around 0.75
+and the B bar to be about 1.75. [$\ldots$] \\
+Our second objection to pseudo 3D graphs is that different software programs draw
+them differently. PowerPoint is in the same suite of programs as Excel but earlier versions
+of PowerPoint did have a default gap depth of zero. Therefore, the usual value of a 3D
+bar graph drawn using these versions of PowerPoint was read from the back of the bar.
+Figure 12 (left) shows a figure from PowerPoint 2003 (not the same data as in Figures 11).
+A number of software programs show the value from the front of the bar as in the arrow
+of the A bar in Figure 11 and in Figure 12 (right). Even different versions of the same
+software may have different defaults. We find it unacceptable that the way to read a figure
+should depend on the software used to draw it. Readers often don't know what software
+was used and even if they did, they probably don't know the algorithm used.''
+\end{quotation}
+
+
+\begin{figure}[h]
+\centering{\includegraphics[width=6.0in]{Scans//SRH_2016_Fig11.jpg}}
+\caption{\label{SRH_2016_Fig11}
+\cite{SRH2016ASA}, Figure~11: 
+Many readers are not sure how to read an Excel 3D bar chart (left). An Excel
+2D bar chart is much clearer (right).
+}
+\end{figure}
+
+
+\begin{figure}[h]
+\centering{\includegraphics[width=6.0in]{Scans//SRH_2016_Fig12.jpg}}
+\caption{\label{SRH_2016_Fig12}
+\cite{SRH2016ASA}, Figure~12: 
+With PowerPoint 2003 you read from the back of the bar (left). With Presentations
+and Charts you read from the front of the bar (right).
+}
+\end{figure}
+
+
+\newpage
+
+
+\subsubsection{Dot Charts}
+
+
+The R help page for dotchart indicates:
+\begin{quotation}
+``Draw a Cleveland dot plot. [$\ldots$] \\
+This function is invoked for its side effect, which is to produce two variants 
+of dotplots as described in \cite{Cle85}. 
+Dot plots are a reasonable substitute for bar plots.''
+\end{quotation}
+
+
+<<fig=TRUE>>=
+dotchart(UCBAd)
+@
+
+<<fig=TRUE>>=
+UCBMajor <- margin.table(UCBAdmissions, 2:3)
+dotchart(UCBMajor)
+@
+
+<<fig=TRUE>>=
+UCBMajorsort <- UCBMajor[, order(UCBMajor[1, ], decreasing = TRUE)]
+dotchart(UCBMajorsort, color = c("purple", "orange"))
+@
+
+
+Let's try a few more dot plots with ggplot2. 
+
+<<fig=TRUE>>=
+library(ggplot2)
+library(plyr)
+library(gridExtra)
+library(grid)
+
+UCBdt <- as.data.frame(UCBAdmissions)
+
+overall <- ddply(UCBdt, .(Gender), function(gender) {
+  temp <- c(sum(gender[gender$Admit == "Admitted", "Freq"]), 
+            sum(gender[gender$Admit == "Rejected", "Freq"])) / sum(gender$Freq)
+  names(temp) <- c("Admitted", "Rejected")
+  temp
+})
+overall
+
+departmentwise <- ddply(UCBdt, .(Gender, Dept), function(gender) {
+  temp <- gender$Freq / sum(gender$Freq)
+  names(temp) <- c("Admitted", "Rejected")
+  temp
+})
+departmentwise
+
+qplot(Gender, Admitted, data = overall)
+
+qplot(Gender, Admitted, data = overall, colour = Gender)
+
+
+qplot(Gender, Admitted, data = departmentwise)
+
+qplot(Gender, Admitted, data = departmentwise, colour = Dept)
+
+qplot(Gender, Admitted, data = departmentwise, colour = Dept) +
+  facet_grid(~ Dept)
+
+qplot(Gender, Admitted, data = departmentwise, colour = Gender) +
+  facet_grid(~ Dept)
+
+qplot(Dept, Admitted, data = departmentwise, colour = Gender) +
+  facet_grid(~ Gender)
+
+qplot(Gender, Admitted, data = departmentwise, colour = Gender) +
+  facet_grid(Dept ~ Gender)
+
+qplot(Gender, Admitted, data = departmentwise, colour = Gender) +
+  facet_grid(Gender ~ Dept)
+
+qplot("", Admitted, data = departmentwise, colour = Gender) +
+  facet_grid(~ Gender + Dept)
+
+qplot("", Admitted, data = departmentwise, colour = Gender) +
+  facet_grid(~ Dept + Gender)
+@
+
+
+\newpage
+
+
+\subsubsection{Mosaic Plots}
+
+
+The R help page for mosaicplot indicates:
+\begin{quotation}
+``Plots a mosaic on the current graphics device. [$\ldots$] \\
+{\it shade} a logical indicating whether to produce extended mosaic plots, 
+or a numeric vector of at most 5 distinct positive numbers giving the absolute values 
+of the cut points for the residuals. By default, shade is FALSE, and simple mosaics are created. 
+Using shade = TRUE cuts absolute values at 2 and 4.''
+\end{quotation}
+
+<<fig=TRUE>>=
+UCBAdM <- margin.table(UCBAdmissions,1)
+mosaicplot(UCBAdM)
+@
+
+<<fig=TRUE>>=
+mosaicplot(UCBAd)
+@
+
+<<fig=TRUE>>=
+mosaicplot(UCBAd, shade = TRUE)
+# Category of females admitted is underfilled, and females rejected is overfilled. 
+# Males admitted is overfilled, males rejected is underfilled
+@
+
+
+<<fig=TRUE>>=
+mosaicplot(UCBAdmissions)
+@
+
+<<fig=TRUE>>=
+mosaicplot(UCBAdmissions, shade = TRUE)
+# men are overadmitted in A and B, but underadmitted in C-F. 
+# Women were highly underadmitted in A, B, and F. However, they are overadmitted in C, and fairly represented in C and D. 
+# This can be more advanced with categorical data analysis. More potential with additional arguments
+@
+
+<<fig=TRUE>>=
+mosaicplot(aperm(UCBAdmissions, 3:1), shade = TRUE)
+#same data, different display
+mosaicplot(aperm(UCBAdmissions, c(2,3,1)), shade = TRUE)
+@
+
+<<fig=TRUE>>=
+library(ggmosaic)
+library(tibble)
+countsToCases <- funtion(x, contcol = "Freq"){
+  inx <- repint(seq_len(nrow(x)), x[[countcol]])
+  x[[countcol]] <- NULL
+  x[idx]
+}
+
+UCBAdmissionstib <- as.tibble(countsToCases(as.data.frame(UCBAdmissions)))
+ggplot(data = UCBAdmissionstib) +
+  geom_mosaic(aes(x=product(Dept,Admit,Gender), fill = factor(Admit)),
+              divider = mosaic("h"), offset = 0.03) +
+  labs(x = "Dept:Admit", y = "Gender") + 
+  theme(axis.text.x=element_text(angle = -90, hjust = .1)) +
+  guides(fill = guide_legend(title = "Gender", reverse = TRUE))
+  
+  
+
+@
+
+\newpage
+
+
+\subsubsection{Spine Plots and Spinograms}
+
+
+The R help page for spineplot indicates:
+\begin{quotation}
+``Spine plots are a special case of mosaic plots, 
+and can be seen as a generalization of stacked (or highlighted) 
+bar plots. Analogously, spinograms are an extension of histograms.''
+\end{quotation}
+
+
+<<fig=TRUE>>=
+#
+# compare the use of this command without () ...
+#
+spineplot(UCBAd)
+@
+
+<<fig=TRUE>>=
+#
+# ... and with ()
+#
+(spineplot(UCBAd))
+#
+# returns underlying table
+@
+
+<<fig=TRUE>>=
+(spineplot(t(UCBAd)))
+# transposed table
+@
+
+<<fig=TRUE>>=
+(spineplot(margin.table(UCBAdmissions, c(3, 2)), main = "Applications at UCB"))
+#width represent total number of applicants
+@
+
+<<fig=TRUE>>=
+(spineplot(margin.table(UCBAdmissions, c(3, 1)), main = "Admissions at UCB")) 
+@
+
+
+\newpage
+
+
+\subsection{Categorical Plots in Mondrian}
+
+
+According to \url{http://www.theusrus.de/Mondrian/}:
+\begin{quotation}
+``Mondrian is a general purpose statistical data--visualization system. 
+It features outstanding visualization techniques for data of almost any kind, 
+and has its particular strength compared to other tools when working with 
+{\bf Categorical Data, Geographical Data} and {\bf LARGE Data}. 
+
+All plots in Mondrian are fully linked, and offer various interactions 
+and queries. Any case selected in a plot in Mondrian is highlighted in all other plots. 
+
+Currently implemented plots comprise {\bf Mosaic Plot, 
+Scatterplots and SPLOM, Maps, Barcharts, Histograms, 
+Missing Value Plot, Parallel Coordinates/Boxplots} and {\bf Boxplots y by x}. ''
+\end{quotation}
+
+
+Main references for Mondrian are
+\cite{Theu2002}, \cite{Theu2003}, and \cite{TU2009}.
+
+\cite{TU2009} has an associated Web page at
+\url{http://www.interactivegraphics.org}:
+\begin{quotation}
+``This site is the web resource for the book ``Interactive Graphics for Data Analysis --- 
+Principles and Examples''.
+
+There are links to the most important software tools, all datasets used in the book for 
+easy download, and a set of slides which may be used together with the book for a lecture.
+
+The R--code used in the book can be found here as well.''
+\end{quotation}
+
+
+\subsubsection{Installation}
+
+
+Go to \url{http://www.theusrus.de/Mondrian/}, then follow the link to
+the download section on this page. Look over the license condition.
+If you agree, then download the most recent version of Mondrian
+(currently 1.5b as of 8/28/2013) by right mouse--clicking on the operating system
+you use. Save {\it Mondrian.exe} into a directory of your choice. You can start Mondrian
+directly (without any additional installation) by mouse--clicking on {\it Mondrian.exe}.
+
+As a test data set, work with the {\it Titanic} data available 
+under the {\it Mondrian} {\it Titanic} link or directly
+from \url{http://www.theusrus.de/Mondrian/Data/Titanic.txt}.
+Save these data locally as {\it Titanic.txt}. Then load them into {\it Mondrian}.
+
+
+\subsubsection{The Titanic Data in Mondrian}
+
+
+The {\it Mondrian} description at \url{http://www.theusrus.de/Mondrian/} indicates:
+\begin{quotation}
+\noindent
+``{\bf Titanic} \\[0.2cm]
+Data set on the 2201 passengers of the Titanic. Pure categorical with data on 
+class, gender, age and survival.''
+\end{quotation}
+
+
+The interactive exploration of the {\it Titanic} data via 
+{\it Mondrian} has been further discussed in
+\cite{TU2009}, Examples D: The Titanic Disaster Revisited, pp.~183--191.
+
+
+\underline{Task:} \\
+Interactively recreate the nine plots from Figure~\ref{Theus_p186_Fig}
+using {\it Mondrian}.
+
+
+\begin{figure}[ht]
+\centering{\includegraphics[width=3.0in]{Scans//Theus_p186_Fig.jpg}}
+\caption{\label{Theus_p186_Fig}
+\cite{TU2009}, p.~186, Figure.
+}
+\end{figure}
+
+
+\newpage
+
+
+\if\jsprivatechfour 1
+
+\underline{Answer:} \\
+
+
+\else
+{\bf Additional details will be provided after class.}
+\fi
+
+
+% Data description from http://rosuda.org/mondrian/
+%Here are some sample data sets, which are ready to load and test with 
+%Mondrian (make sure to save the link directly to preserve the tabs!):
+
+%Titanic 
+%Data set on the 2201 passengers of the Titanic. Pure categorical with data on 
+%class, gender, age and survival. 
+
+%Pollen 
+%Fake data set with hidden feature, which is easily found with $\alpha$-channel features. 
+
+%Olive Oils 
+%Data set on Italian olive oils. Several fatty acids have been measured which 
+%allow to separate the different regions from Italy. 
+
+%Berlin (old map format) 
+%Election and socio-economic data on the city of Berlin, shortly after the Berlin Wall 
+%was torn down. Includes a polygon of the districts of Berlin.
+
+%US Election 2004 (new map format)
+%Data on the 2004 US presidential election. Includes polygons of the Counties of the US. 
+%Data courtesy of GeoVISTA (http://www.personal.psu.edu/users/a/c/acr181/election.html)
+
+
+\newpage
+
+
+\subsubsection{The Titanic Data in iPlots}
+
+{\it iPlots} is an interactive graphics package for R,
+further described in \cite{TU2004} and
+accessible at
+\url{http://cran.r-project.org/web/packages/iplots/index.html}.
+{\it iPlots} is closely related to {\it Mondrian}.
+In the example below, we will reproduce some of the plots
+via {\it iPlots} that were previously created via {\it Mondrian}.
+
+<<fig=FALSE>>=
+#Sys.setenv(JAVA_HOME = "C:/Program Files/Java/jdk1.8.0_77/")
+#library(iplots)
+
+#TitanicMondrian <- read.table("http://www.theusrus.de/Mondrian/Data/Titanic.txt",
+#                              header = TRUE)
+
+#summary(TitanicMondrian)
+
+#ibar(TitanicMondrian$Survived)
+#iplot.rotate(1)
+#iset.select(TitanicMondrian$Survived == "Yes")
+
+#ibar(TitanicMondrian$Class)
+#iplot.rotate(1)
+
+#ibar(TitanicMondrian$Class, isSpine = TRUE)
+#iplot.rotate(1)
+
+#imosaic(TitanicMondrian$Sex, TitanicMondrian$Class)
+
+#iset.selectNone()
+
+
+#iobj.list()
+
+#for (i in 1:length(iobj.list())) 
+#  iobj.rm() # remove all objects
+
+
+#iplot.list()
+
+#for (i in 1:length(iplot.list()))
+#  iplot.off() # close all windows
+
+
+#iset.rm() # remove this iset
+@
+
+
+\newpage
+
+
+\subsection{Further Reading}
+
+Additional sources for the visualization of categorical data are:
+
+\begin{itemize}
+\item \cite{BG98}
+
+\item \cite{Fr2000VCD}
+
+\item \cite{Hof2007}
+
+\item \cite{TU2009}
+
+\end{itemize}
+
+
+~\\[0.5in]
+
+\begin{figure}[ht]
+\centering{\includegraphics[height=4in]{Scans//Cartoonstock_Pizza.png}}
+\caption{\label{Cartoonstock_Pizza}
+\url{http://www.cartoonstock.com/cartoonview.asp?start=7&search=main&catref=rde1808&MA_Artist=&MA_Category=&ANDkeyword=statistics&ORkeyword=&TITLEkeyword=&NEGATIVEkeyword=}, 
+Cartoon.
+}
+\end{figure}
+
+
+\newpage
+
+
+~\\[2cm]
+
+
+\begin{figure}[ht]
+\centering{\includegraphics[height=4in]{Scans//BarChartsTaller.jpg}}
+\caption{\label{BarChartsTaller}
+\url{http://www.dxbydt.com/bars-pies-using-ggplot2/},
+Cartoon.
+}
+\end{figure}
+
+
+\newpage
+
+

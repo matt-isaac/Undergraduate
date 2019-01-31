@@ -1,1 +1,1 @@
-Undergraduate
+Coursework from undergraduate education. 

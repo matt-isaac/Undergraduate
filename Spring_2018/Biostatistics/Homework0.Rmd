@@ -1,0 +1,44 @@
+---
+title: "Biostatistics - Homework 0"
+author: "Matt Isaac"
+date: "January 11, 2018"
+output: pdf_document
+---
+
+1.  Test whether there is a significant difference in IQ between the "high" and "low" lead level groups. 
+
+
+a. Let $\mu_{high}$ and $\mu_{low}$ be the average IQ score for all childern with high and low lead exposure respectively.  
+$H_0: \mu_{high} = \mu_{low}$ vs. $H_A: \mu_{high} \neq \mu_{low}$  
+b. I performed a two-sample independent t-test with pooled variance.  
+c. Test statistic: -1.71  
+d. p-value: 0.0925  
+e. Conclusion in context: Since our p-value is > 0.05, we fail to reject $H_0$. In context, this means that we do not have evidence of a significant difference between the mean IQ scores for children with a high or low lead exposure.   
+
+2. SAS code:  
+
+\text{
+/* Generated Code (IMPORT) */
+/* Source File: LeadExposure.csv */
+/* Source Path: /home/mattisaac0/BioStatistics */
+/* Code generated on: 1/11/18, 8:30 AM */
+
+* %web_drop_table(WORK.LEAD);
+
+
+FILENAME REFFILE '/home/mattisaac0/BioStatistics/LeadExposure.csv';
+
+PROC IMPORT DATAFILE=REFFILE
+	DBMS=CSV
+	OUT=WORK.LEAD;
+	GETNAMES=YES;
+RUN;
+
+%web_open_table(WORK.LEAD);
+
+* t-test for IQ. Variance of high exposure group is approx. equal to variance of low exposure group. ;
+
+proc ttest data = lead ci=equal umpu;
+	class exposure;
+	var iq;
+run;}

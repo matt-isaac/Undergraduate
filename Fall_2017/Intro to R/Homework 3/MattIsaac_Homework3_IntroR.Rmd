@@ -1,0 +1,95 @@
+---
+title: "Homework 3 - Intro to R"
+author: "Matt Isaac"
+date: "September 18, 2017"
+output: pdf_document
+---
+
+```{r, results = FALSE}
+athletes <-  read.table("athletes2016.txt")
+```
+1. Completed
+
+```{r, results= FALSE}
+cnames <-  c("Country", "NumAthletes", "NumGold", "NumSilver", "NumBronze", "NumTotal")
+colnames(athletes, do.NULL = FALSE)
+colnames(athletes) <- cnames
+```
+2. Completed
+
+```{r}
+sorted_by_athletes <- athletes[order(-athletes$NumAthletes),]
+most_athletes_15 <- sorted_by_athletes$Country[1:15]
+```
+3. The 15 countries that sent the most athletes to the 2016 Olympics are (in descending order): `r most_athletes_15`
+
+
+```{r}
+sorted_by_medals <- athletes[order(-athletes$NumTotal),]
+most_medals_15 <- sorted_by_medals$Country[1:15]
+```
+4. The 15 countries that won the most medals in the 2016 Olympics are (in descending order): `r most_medals_15`
+
+```{r}
+plot(athletes$NumAthletes, athletes$NumTotal, xlab = 'Number of Athletes', 
+     ylab = 'Number of Medals')
+ath_cor = cor(athletes$NumAthletes, athletes$NumTotal)
+```
+5. There appears to be a positive linear relationship between the number of athletes sent by a country and the number of medals won by that country. As we look at the scatter plot, it is clear that (in general) countries with more athletes competing won more medals. Our observations from the plot are confirmed by the correlation coefficient. $r =$ `r round( ath_cor, 3)`. This value of $r$ suggests a moderately strong positive linear relationship. 
+
+```{r}
+population = c(325771000, 1386390000, 65648100, 146787329, 67080000, 
+               82800000, 126750000, 24654000, 36660000,60532325, 51446201,
+               208003000, 17155200, 9843031, 44044811)
+```
+6. Completed
+
+```{r}
+plot(population, sorted_by_medals$NumTotal[1:15], xlab = 'Population',
+     ylab = 'Number of Medals')
+pop_cor = cor(population, sorted_by_medals$NumTotal[1:15])
+```
+7. There again appears to be a positive linear relationship between the two variables in question. Less observations make our conclusion less concrete, but there is definitely a linear trend. As population increases, number of medals tends to increase. The plot conveys extremely important information in this case. If we were to look at the correlation coefficient alone, we might be misled. $r =$ `r round(pop_cor, 3)`. This alone doesn't imply a very strong linear relationship, but we can see that there is one outlier that is bringing the correlation coefficient down. 
+
+```{r}
+ratios = sorted_by_medals$NumTotal[1:15]/population
+ratios_1000000 = ratios * 1000000
+```
+8. The ratios are as follows. (Note - These ratios have been scaled up by a factor of 1,000,000 for ease in comparison)
+
+Country       |  Medals to Population * 1,000,000
+--------------|-----------------------------------
+United States | `r round(ratios_1000000[1], 3)`
+--------------|-----------------------------------
+China | `r round(ratios_1000000[2],3)`
+--------------|-----------------------------------
+Great Britain | `r round(ratios_1000000[3],3)`
+--------------|-----------------------------------
+Russia | `r round(ratios_1000000[4],3)`
+--------------|-----------------------------------
+France | `r round(ratios_1000000[5],3)`
+--------------|-----------------------------------
+Germany | `r round(ratios_1000000[6],3)`
+--------------|-----------------------------------
+Japan | `r round(ratios_1000000[7],3)`
+--------------|-----------------------------------
+Australia | `r round(ratios_1000000[8],3)`
+--------------|-----------------------------------
+Italy | `r round(ratios_1000000[9],3)`
+--------------|-----------------------------------
+Canada | `r round(ratios_1000000[10],3)`
+--------------|-----------------------------------
+South Korea | `r round(ratios_1000000[11],3)`
+--------------|-----------------------------------
+Brazil | `r round(ratios_1000000[12],3)`
+--------------|-----------------------------------
+Netherlands | `r round(ratios_1000000[13],3)`
+--------------|-----------------------------------
+Azerbaijan | `r round(ratios_1000000[14],3)`
+--------------|-----------------------------------
+New Zeland | `r round(ratios_1000000[15],3)`
+
+When we take the ratio, we are in a sense "controlling" for population size. We find that if we take population size into account, the countries with larger populations actually got less medals per population member than the small countries. China (one of the largest populations) had the smallest ratio. And Azerbaijan (one of the smallest populations) had one of the largest ratios. When we analyze the data this way, the correlation isn't as strong, and isn't what I expected. 
+
+9. These data tell us that the countries with larger populations generally have more athletes. The more athletes a country has competing, the more medals that country is likely to win. However, we also learned that if we are actually going to do a side-by-side comparison, it would be wise to control for the variability in the number of athletes competing. For having so few athletes, small countries like Azerbaijan and the Netherlands did quite well. By the same token, China and the United States did receive a lot of medals, but this achievement should be recognized with the fact in mind that the large number of competing athletes does give these countries an advantage. 
+

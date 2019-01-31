@@ -1,0 +1,1 @@
+typeSearchIndex = [{"p":"cs2410.assn2","l":"Fizzy"}]
